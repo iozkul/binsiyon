@@ -1,0 +1,8 @@
+{
+    "Finance": true,
+    "Residents": true,
+    "Announcements": true,
+    "Reservation": true,
+    "Package": true,
+    "Maintenance": true
+}

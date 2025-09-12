@@ -1,0 +1,11 @@
+{
+    "name": "Reservation",
+    "alias": "reservation",
+    "description": "Site sakinleri için tesis rezervasyon sistemi sağlar.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Reservation\\Providers\\ReservationServiceProvider"
+    ],
+    "files": []
+}
