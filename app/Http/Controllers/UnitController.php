@@ -8,6 +8,8 @@ use App\Models\Block;
 
 class UnitController extends Controller
 {
+
+
     public function index()
     {
         // UnitPolicy'deki 'viewAny' kuralını kontrol et
@@ -18,6 +20,7 @@ class UnitController extends Controller
 
         return view('units.index', compact('units'));
     }
+
     public function convert(Request $request, Unit $unit)
     {
         $validated = $request->validate(['new_type' => 'required|in:apartment,commercial,social']);

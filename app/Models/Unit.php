@@ -54,4 +54,6 @@ class Unit extends Model
     {
         return $this->belongsTo(User::class, 'resident_id');
     }
+
+    
 }
