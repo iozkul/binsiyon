@@ -46,7 +46,9 @@ class Unit extends Model
     // Unit bir siteye bağlı
     public function site()
     {
-        return $this->belongsTo(Site::class);
+        //return $this->belongsTo(Site::class);
+        return $this->hasOneThrough(Site::class, Block::class, 'id', 'id', 'block_id', 'site_id');
+
     }
 
     // Unit içinde yaşayan kullanıcı (örn. resident_id ile)
@@ -55,5 +57,5 @@ class Unit extends Model
         return $this->belongsTo(User::class, 'resident_id');
     }
 
-    
+
 }
