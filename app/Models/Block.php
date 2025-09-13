@@ -29,6 +29,10 @@ class Block extends Model
     {
         return $this->belongsTo(User::class, 'manager_id');
     }
+    public function admins()
+    {
+        return $this->belongsToMany(User::class, 'block_admins', 'block_id', 'user_id');
+    }
     public function users()
     {
         return $this->belongsToMany(User::class, 'block_user_pivot', 'block_id', 'user_id');

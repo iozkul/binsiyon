@@ -17,14 +17,9 @@ class SitePolicy
     /**
      * Determine whether the user can view any models.
      */
+
+
     /*
-    public function before(User $user, string $ability): bool|null
-    {
-        if ($user->hasRole('super-admin')) {
-            return true;
-        }
-        return null;
-    }*/
     public function viewAny(User $user): bool
     {
         return $user->can('manage sites');
@@ -35,6 +30,7 @@ class SitePolicy
     /**
      * Determine whether the user can view the model.
      */
+    /*
     public function view(User $user, Site $site): bool
     {
         /*
@@ -42,11 +38,38 @@ class SitePolicy
             // Sadece kendi yönettiği siteyi görebilir.
             //return $user->managedSites()->where('site_id', $site->id)->exists();
             return $user->managedSites->contains($site);
-        }*/
+        }*//*
         return $user->can('manage sites') && $user->managedSites()->where('site_id', $site->id)->exists();
         //return $user->can('manage sites');
     }
+*/
+    public function before(User $user, string $ability): bool|null
+    {
+        if ($user->hasRole('super-admin')) {
+            return true;
+        }
+        return null;
+    }
 
+    public function view(User $user, Site $site): bool
+    {
+        // Kullanıcının 'manage sites' yetkisine sahip olup olmadığını kontrol et
+        // ve yönettiği siteler arasında ilgili site olup olmadığını kontrol et.
+        //return $user->can('manage sites') && $user->managedSites->contains($site);
+        // Kullanıcı, sitenin yöneticisi ise görebilir.
+        return $user->managedSites->contains($site);
+    }
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+
+    public function update(User $user, Site $site): bool
+    {
+        // 'view' ile aynı mantık çalışır, çünkü güncelleme için de görme yetkisi gerekir.
+        //return $user->can('manage sites') && $user->managedSites->contains($site);
+        return $user->managedSites->contains($site);
+    }
     /**
      * Determine whether the user can create models.
      */
@@ -59,6 +82,7 @@ class SitePolicy
     /**
      * Determine whether the user can update the model.
      */
+    /*
     public function update(User $user, Site $site): bool
     {
         /*
@@ -73,9 +97,9 @@ class SitePolicy
         if ($user->can('manage sites') && !$user->hasRole('super-admin')) {
             return $user->managedSites->contains($site);
         }
-        return $user->can('manage sites');*/
+        return $user->can('manage sites');*//*
         return $user->can('manage sites') && $user->managedSites()->where('site_id', $site->id)->exists();
-    }
+    }*/
 
     /**
      * Determine whether the user can delete the model.

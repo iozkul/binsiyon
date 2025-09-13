@@ -143,6 +143,10 @@ class SiteController extends Controller
      */
     public function show(Site $site)
     {
+        $this->authorize('view', $site);
+
+        return view('sites.show', compact('site'));
+        /*
         $site->load('blocks.units.residents', 'blocks.manager'); // Gerekli ilişkileri tek seferde yükle (Performans için)
 
         $blockData = $site->blocks->map(function ($block) {
@@ -152,13 +156,13 @@ class SiteController extends Controller
                 'manager' => $block->manager?->name ?? 'Atanmamış'
             ];
         });
-
+*/
         // Gelir-Gider, Personel gibi verileri ilgili modellerden çekmeniz gerekecek.
         // Örnek:
         // $income = $site->transactions()->where('type', 'income')->sum('amount');
         // $staff = $site->staff()->get();
 
-        return view('sites.show', compact('site', 'blockData'));
+        //return view('sites.show', compact('site', 'blockData'));
     }
 
     /**

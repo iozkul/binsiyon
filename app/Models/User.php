@@ -12,7 +12,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Site;
-
+use App\Models\Scopes\ManagedScope;
 
 
 class User extends Authenticatable
@@ -67,7 +67,37 @@ class User extends Authenticatable
 
         ];
     }
-	 public function site(): BelongsTo
+
+    /**
+     * Bu scope, kullanıcı listesi sorgularını mevcut yöneticinin yetkilerine göre filtreler.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeManaged($query)
+    {
+        $user = auth()->user();
+
+        // Kullanıcı giriş yapmış ve super-admin değilse filtrele
+        if ($user && !$user->hasRole('super-admin')) {
+            if ($user->hasRole('site-admin')) {
+                $managedSiteIds = $user->managedSites()->pluck('sites.id');
+                return $query->whereIn('site_id', $managedSiteIds);
+            }
+
+            if ($user->hasRole('block-admin')) {
+                $managedBlockIds = $user->managedBlocks()->pluck('blocks.id');
+                return $query->whereHas('unit', function ($q) use ($managedBlockIds) {
+                    $q->whereIn('block_id', $managedBlockIds);
+                });
+            }
+        }
+
+        // Eğer super-admin ise veya kullanıcı girişi yoksa hiçbir filtreleme yapma
+        return $query;
+    }
+
+    public function site(): BelongsTo
     {
         // 'users' tablosunda 'site_id' adında bir sütun olduğunu varsayar.
         return $this->belongsTo(Site::class);

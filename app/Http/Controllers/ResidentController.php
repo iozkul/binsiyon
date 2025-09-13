@@ -13,6 +13,7 @@ class ResidentController extends Controller
     /**
      * Display a listing of the resource.
      */
+    /*
     public function index()
     {
 
@@ -67,7 +68,45 @@ class ResidentController extends Controller
 
 
     }
+*/
+    /*
+    public function index()
+    {
+        $user = Auth::user();
 
+        // Sorguyu başlat
+        $query = User::role(['resident', 'staff','super-admin','site-admin','block-admin']);
+
+        // Eğer kullanıcı super-admin değilse, sadece yönettiği sitelerdeki sakinleri göster
+        if (!$user->hasRole('super-admin')) {
+            // Site admin ise yönettiği sitelerdeki kullanıcıları getir
+            if ($user->hasRole('site-admin')) {
+                $managedSiteIds = $user->managedSites()->pluck('sites.id');
+                $query->whereIn('site_id', $managedSiteIds);
+            }
+            // Block admin ise yönettiği bloklardaki kullanıcıları getir
+            elseif ($user->hasRole('block-admin')) {
+                $managedBlockIds = $user->managedBlocks()->pluck('blocks.id');
+                // Bu bloklara bağlı dairelerdeki (unit) kullanıcıları bul
+                $query->whereHas('unit', function ($q) use ($managedBlockIds) {
+                    $q->whereIn('block_id', $managedBlockIds);
+                });
+            }
+        }
+        // super-admin ise hiçbir filtreleme yapma, tüm 'residence' rolündeki kullanıcıları getir
+
+        $residents = $query->latest()->paginate(10); // veya ->get();
+
+        return view('residents.index', compact('residents'));
+    } */
+    public function index()
+    {
+        // User::managed() diyerek yerel scope'u burada çağırıyoruz.
+        // Bu sayede filtreleme sadece bu sorgu için çalışır.
+        $residents = User::managed()->role(['resident', 'staff','super-admin','site-admin','block-admin'])->latest()->paginate(10);
+
+        return view('residents.index', compact('residents'));
+    }
     /**
      * Show the form for creating a new resource.
      */

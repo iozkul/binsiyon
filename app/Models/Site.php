@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Scopes\ManagedScope;
+use App\Models\Debt;
 
 
 class Site extends Model
@@ -14,6 +15,7 @@ class Site extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new ManagedScope);
+
     }
     use HasFactory, SoftDeletes;
     //protected $fillable = ['name','address'];
@@ -31,7 +33,10 @@ class Site extends Model
         'address_line',
         'postal_code',
     ];
-
+    public function debts()
+    {
+        return $this->hasManyThrough(Debt::class, User::class);
+    }
     public function managers()
     {
         return $this->belongsToMany(User::class, 'site_manager');

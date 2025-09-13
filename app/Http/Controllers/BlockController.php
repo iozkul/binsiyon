@@ -115,10 +115,11 @@ class BlockController extends Controller
      * Display the specified resource.
      */
     public function show(Block $block)
-    {$this->authorize('view', $block);
+    {
+        $this->authorize('view', $block);
 
         // İlişkileri yüklüyoruz. Bu doğru.
-        $block->load('manager', 'units.residents');
+        //$block->load('manager', 'units.residents');
 
         // --- KODUN DÜZELTİLMİŞ HALİ ---
 
