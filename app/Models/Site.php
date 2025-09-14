@@ -41,5 +41,8 @@ class Site extends Model
     {
         return $this->belongsToMany(User::class, 'site_manager');
     }
-
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'site_user');
+    }
 }

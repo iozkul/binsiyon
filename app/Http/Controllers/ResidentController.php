@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
-
+use App\Services\MoveResidentService;
+use App\Models\Unit;
+use Carbon\Carbon;
 
 
 class ResidentController extends Controller
@@ -147,7 +149,22 @@ class ResidentController extends Controller
      */
     public function update(Request $request, Resident $resident)
     {
-        //
+
+        // Policy'yi çağır. Yetkisi yoksa 403 Forbidden hatası döner.
+        $this->authorize('update', $resident);
+
+        // Önemli: Rol bazlı alan kontrolü
+        if (!$request->user()->hasRole('super-admin')) {
+            // Eğer güncelleyen kişi super-admin değilse,
+            // sadece izin verilen alanları al.
+            $data = $request->except(['name', 'email', 'phone_number']);
+        } else {
+            // super-admin ise tüm alanları al.
+            $data = $request->all();
+        }
+
+        $resident->update($data);
+
     }
 
     /**
@@ -205,5 +222,22 @@ class ResidentController extends Controller
         // Başarılı mesajıyla birlikte önceki sayfaya yönlendir
         return redirect()->route('residents.index')->with('success', $user->name . ' kullanıcısına ' . $role->name . ' rolü başarıyla atandı.');
     }
+    public function move(Request $request, User $resident, MoveResidentService $moveService)
+    {
+        $request->validate([
+            'new_unit_id' => 'required|exists:units,id',
+            'move_date' => 'required|date',
+        ]);
 
+        $newUnit = Unit::findOrFail($request->new_unit_id);
+        $moveDate = Carbon::parse($request->move_date);
+
+        $success = $moveService->handle($resident, $newUnit, $moveDate);
+
+        if ($success) {
+            return redirect()->back()->with('success', 'Sakin başarıyla yeni birime taşındı.');
+        }
+
+        return redirect()->back()->with('error', 'Taşınma işlemi sırasında bir hata oluştu.');
+    }
 }

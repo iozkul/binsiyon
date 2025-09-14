@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Site;
 use App\Models\Scopes\ManagedScope;
+use App\Models\Debt;
 
 
 class User extends Authenticatable
@@ -67,6 +68,12 @@ class User extends Authenticatable
 
         ];
     }
+    public function sites()
+    {
+        // Birden çok site yönetimi için pivot tablo ilişkisi
+        return $this->belongsToMany(Site::class, 'site_user');
+    }
+
 
     /**
      * Bu scope, kullanıcı listesi sorgularını mevcut yöneticinin yetkilerine göre filtreler.
@@ -100,7 +107,7 @@ class User extends Authenticatable
     public function site(): BelongsTo
     {
         // 'users' tablosunda 'site_id' adında bir sütun olduğunu varsayar.
-        return $this->belongsTo(Site::class);
+        return $this->belongsTo(Site::class, 'site_id');
     }
 
     /**
@@ -174,5 +181,19 @@ class User extends Authenticatable
     public function readAnnouncements()
     {
         return $this->belongsToMany(Announcement::class, 'announcement_reads', 'user_id', 'announcement_id')->withTimestamps();
+    }
+
+    public function debts()
+    {
+        return $this->hasMany(Debt::class);
+    }
+
+// Toplam ödenmemiş borcu hesaplayan accessor
+    public function getPayableAmountAttribute()
+    {
+        // 'status' alanı 'paid' olmayan borçların toplamı
+        // db_binsiyon.sql dosyanızda 'debts' tablosunda status alanı varsayıyorum.
+        // Eğer farklı bir mantık varsa (örn. 'paid_at' null ise), burası güncellenmeli.
+        return $this->debts()->where('status', '!=', 'paid')->sum('amount');
     }
 }
