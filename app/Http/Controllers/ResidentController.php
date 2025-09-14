@@ -8,6 +8,8 @@ use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 
+
+
 class ResidentController extends Controller
 {
     /**
@@ -107,6 +109,7 @@ class ResidentController extends Controller
 
         return view('residents.index', compact('residents'));
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -157,17 +160,18 @@ class ResidentController extends Controller
 	public function showAssignForm()
     {
         // Hiçbir rolü olmayan kullanıcıları bul
-        $usersWithoutRoles = User::whereDoesntHave('roles')->get();
+        //$usersWithoutRoles = User::whereDoesntHave('roles')->get();
 
         // Atama yapmak için sistemdeki tüm rolleri al
         $roles = Role::all();
-
+        $usersWithoutRoles = User::doesntHave('roles')->get();
         // Verileri view'a gönder
         return view('residents.assign-roles', [
             'users' => $usersWithoutRoles,
             'roles' => $roles
         ]);
     }
+    /*
 	 public function assignRole(Request $request, User $user)
     {
         // Gelen veriyi doğrula: 'role' alanı zorunlu ve roles tablosunda var olmalı
@@ -181,5 +185,25 @@ class ResidentController extends Controller
 
         // Başarı mesajıyla birlikte bir önceki sayfaya yönlendir
         return back()->with('success', $user->name . ' kullanıcısına ' . $request->role . ' rolü başarıyla atandı.');
+    }*/
+
+    public function assignRole(Request $request)
+    {
+        // Gelen verinin doğruluğunu kontrol et (validation)
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'role_id' => 'required|exists:roles,id',
+        ]);
+
+        // Kullanıcıyı ve rolü bul
+        $user = User::findOrFail($request->user_id);
+        $role = Role::findOrFail($request->role_id);
+
+        // Rolü ata
+        $user->assignRole($role);
+
+        // Başarılı mesajıyla birlikte önceki sayfaya yönlendir
+        return redirect()->route('residents.index')->with('success', $user->name . ' kullanıcısına ' . $role->name . ' rolü başarıyla atandı.');
     }
+
 }

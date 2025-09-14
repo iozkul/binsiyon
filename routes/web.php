@@ -131,6 +131,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('permissions', PermissionController::class);
         Route::get('/residents/assign-roles', [ResidentController::class, 'showAssignForm'])->name('residents.assign_roles_form');
         Route::post('/users/{user}/update-role', [UserController::class, 'updateRole'])->name('users.update_role');
+        Route::resource('residents', ResidentController::class)->names('residents');
+
+
     });
 
     // Site, Blok, Daire ve Sakin Yönetimi

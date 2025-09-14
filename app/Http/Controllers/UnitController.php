@@ -12,11 +12,31 @@ class UnitController extends Controller
 
     public function index()
     {
-        // UnitPolicy'deki 'viewAny' kuralını kontrol et
-        $this->authorize('viewAny', Unit::class);
+        $user = auth()->user();
 
-        // Birimleri, ait oldukları blok ve site bilgisiyle birlikte getir.
-        $units = Unit::with('block.site')->latest()->paginate(20);
+        if ($user->hasRole('super-admin')) {
+            $units = Unit::with('block.site')->paginate(10);
+        } elseif ($user->hasRole('site-admin')) {
+            // Site yöneticisinin yönettiği tüm blokların birimlerini getir.
+            $managedBlockIds = $user->managedBlocks()->pluck('id');
+            $units = Unit::whereIn('block_id', $managedBlockIds)
+                ->with('block.site')
+                ->paginate(10);
+        } elseif ($user->hasRole('block-admin')) {
+            // Blok yöneticisinin yönettiği blokların birimlerini getir.
+            $managedBlockIds = $user->managedBlocks()->pluck('id');
+            $units = Unit::whereIn('block_id', $managedBlockIds)
+                ->with('block.site')
+                ->paginate(10);
+        } else {
+            // Residence/Owner rolündeki kullanıcı sadece kendi birimini görebilir.
+            $units = Unit::where('owner_id', $user->id)
+                ->with('block.site')
+                ->paginate(10);
+        }
+
+
+
 
         return view('units.index', compact('units'));
     }

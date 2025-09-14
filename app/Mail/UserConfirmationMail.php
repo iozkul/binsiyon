@@ -11,16 +11,31 @@ use Illuminate\Queue\SerializesModels;
 use App\Models\User;
 
 
-class UserConfirmationMail extends Mailable
+
+class UserConfirmationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+    /**
+     * User modelinin örneği.
+     * Bu özelliğin "public" olması, Blade şablonunda otomatik olarak
+     * $user değişkenine erişilmesini sağlar.
+     *
+     * @var \App\Models\User
+     */
+    public $user;
 
+    /**
+     * Yeni bir mesaj örneği oluştur.
+     *
+     * @param \App\Models\User $user
+     * @return void
+     */
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct(User $user)
     {
-        //
+        $this->user = $user;
     }
 
     /**

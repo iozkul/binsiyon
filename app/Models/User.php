@@ -135,6 +135,10 @@ class User extends Authenticatable
         //return $this->belongsToMany(Block::class, 'block_user');
         return $this->belongsToMany(Block::class, 'block_admins', 'user_id', 'block_id');
     }
+    public function managedUnits()
+    {
+        return Unit::whereIn('block_id', $this->managedBlocks->pluck('id'));
+    }
     public function getManagedBlockIds()
     {
         // İlişkiyi başlatır ve SADECE 'blocks' tablosunun 'id' sütununu seçmesini söyleriz.
