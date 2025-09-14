@@ -80,7 +80,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // SADECE SÜPER-ADMİN'İN ERİŞEBİLECEĞİ ALANLAR
-    Route::middleware(['role:super-admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['role:super-admin'])->prefix('admin')->name('admin.')->group(function ()
+    {
             // Örn: Yeni profesyonel yönetim firması tanımlama, genel sistem ayarları vb.
             Route::get('/settings', [SuperAdminController::class, 'settings'])
             ->name('settings');
@@ -99,6 +100,10 @@ Route::middleware('auth')->group(function () {
             Route::resource('packages', PackageController::class);
             Route::resource('roles', RoleController::class);
             Route::post('/users/{user}/toggle-ban', [UserController::class, 'toggleBan'])->name('users.toggle-ban');
+        Route::post('users/{user}/roles', [\App\Http\Controllers\Admin\UserController::class, 'assignRoles'])->name('users.assignRoles');
+        Route::get('users/{user}/roles', [\App\Http\Controllers\Admin\UserController::class, 'manageRoles'])->name('users.manageRoles');
+        Route::get('activity-logs', [\App\Http\Controllers\Admin\UserActivityLogController::class, 'index'])->name('logs.index');
+
 
     });
     // SİTE-ADMİN ve SÜPER-ADMİN'İN ERİŞEBİLECEĞİ ALANLAR
@@ -131,6 +136,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('permissions', PermissionController::class);
         Route::get('/residents/assign-roles', [ResidentController::class, 'showAssignForm'])->name('residents.assign_roles_form');
         Route::post('/users/{user}/update-role', [UserController::class, 'updateRole'])->name('users.update_role');
+        Route::resource('residents', ResidentController::class)->names('residents');
+
+
     });
 
     // Site, Blok, Daire ve Sakin Yönetimi

@@ -13,6 +13,10 @@ use App\Models\Payment;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Income;
+use App\Models\Expense;
+use App\Models\Fee;
+use App\Models\Debt;
 
 class DashboardController extends Controller
 {
@@ -74,11 +78,59 @@ class DashboardController extends Controller
             $recent_users = collect();
 
             if ($user->hasRole('site-admin')) {
+                /*
                 // Site-admin ise, yönettiği sitelerdeki kullanıcıları say
                 $managedSiteIds = $user->managedSites()->pluck('id');
                 $stats['total_users'] = User::whereIn('site_id', $managedSiteIds)->count();
                 $recent_users = User::whereIn('site_id', $managedSiteIds)->latest()->take(5)->get();
+*/
+                // 1. Yöneticinin sorumlu olduğu site ID'lerini al
+                $managedSiteIds = $user->managedSites()->pluck('id');
 
+                if ($managedSiteIds->isEmpty()) {
+                    // Yönettiği site yoksa boş veri ile dashboard'u göster
+                    return view('dashboard', ['stats' => []]);
+                }
+
+                // 2. Gerekli istatistikleri doğrudan veritabanında hesapla
+                $totalResidents = User::role('resident')->whereIn('site_id', $managedSiteIds)->count();
+                $totalUnits = \App\Models\Unit::whereHas('block', function ($query) use ($managedSiteIds) {
+                    $query->whereIn('site_id', $managedSiteIds);
+                })->count();
+
+                // 3. Gelir ve Gider toplamlarını veritabanında topla
+                $totalIncome = Income::whereIn('site_id', $managedSiteIds)->sum('amount');
+                $totalExpense = Expense::whereIn('site_id', $managedSiteIds)->sum('amount');
+
+                $balance = $totalIncome - $totalExpense;
+
+                // 4. Diğer istatistikler (Örnek: Aidat ve borçlar)
+                /*
+                $totalFees = \App\Models\Fee::whereIn('site_id', $managedSiteIds)->sum('amount');
+                $totalDebts = \App\Models\Debt::whereIn('site_id', $managedSiteIds)->where('status', 'unpaid')->sum('amount');
+*/
+                $totalFees = \App\Models\Fee::whereHas('user', function ($query) use ($managedSiteIds) {
+                    $query->whereIn('site_id', $managedSiteIds);
+                })->sum('amount');
+
+// Bu kod, Debt (Borç) modelinin 'user' ilişkisi üzerinden site kontrolü yapar.
+                $totalDebts = \App\Models\Debt::whereHas('user', function ($query) use ($managedSiteIds) {
+                    $query->whereIn('site_id', $managedSiteIds);
+                })->where('status', 'unpaid')->sum('amount');
+
+                // 5. Verileri view'e gönder
+                $stats = [
+                    'totalResidents' => $totalResidents,
+                    'totalUnits' => $totalUnits,
+                    'totalIncome' => number_format($totalIncome, 2, ',', '.'),
+                    'totalExpense' => number_format($totalExpense, 2, ',', '.'),
+                    'balance' => number_format($balance, 2, ',', '.'),
+                    'totalFees' => number_format($totalFees, 2, ',', '.'),
+                    'totalDebts' => number_format($totalDebts, 2, ',', '.'),
+                ];
+
+                // Yönlendirilecek view dosyasının adını projenize göre (örn: 'site-admin.dashboard') güncelleyebilirsiniz.
+                return view('dashboard', compact('stats'));
             } elseif ($user->hasRole('block-admin')) {
                 // Block-admin ise, yönettiği bloklardaki kullanıcıları say
                 $managedBlockIds = $user->managedBlocks()->pluck('blocks.id');

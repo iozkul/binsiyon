@@ -34,6 +34,14 @@ class UnitPolicy
      */
     public function view(User $user, Unit $unit): bool
     {
+        // Önce birimin ait olduğu bloğa erişim sağla.
+        $block = $unit->block;
+
+        // Blok bilgisi null ise erişime izin verme.
+        if (is_null($block)) {
+            return false;
+        }
+/*
         if ($user->hasRole('site-admin')) {
             return $user->managedSites->contains($unit->block->site_id);
         }
@@ -43,6 +51,22 @@ class UnitPolicy
         if ($user->hasRole('property-owner')) {
             return $user->unit->owner_id === $user->id;
         }
+        return false;*/
+        // 'site-admin' ise yönettiği sitelerin arasında birimin sitesini kontrol et.
+        if ($user->hasRole('site-admin')) {
+            return $user->managedSites()->where('id', $block->site_id)->exists();
+        }
+
+        // 'block-admin' ise yönettiği blokların arasında birimin bloğunu kontrol et.
+        if ($user->hasRole('block-admin')) {
+            return $user->managedBlocks()->where('id', $block->id)->exists();
+        }
+
+        // Eğer birim sahibi ise kendi birimini görebilir.
+        if ($user->hasRole('residence') || $user->hasRole('owner')) {
+            return $user->id === $unit->owner_id;
+        }
+
         return false;
     }
 

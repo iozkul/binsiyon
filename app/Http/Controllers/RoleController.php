@@ -56,6 +56,9 @@ class RoleController extends Controller
 
     public function update(Request $request, Role $role)
     {
+        if ($role->is_system) {
+            return back()->with('error', 'Sistem rolleri düzenlenemez.');
+        }
         $request->validate([
             'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
             'description' => 'nullable|string',
@@ -72,6 +75,9 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
+        if ($role->is_system) {
+            return back()->with('error', 'Sistem rolleri silinemez.');
+        }
         // Not: Alt rolleri olan bir rolü silme mantığını burada ayrıca düşünmelisiniz.
         // Örneğin alt rolleri de silmek veya bir üst role bağlamak gerekebilir.
         $role->delete();

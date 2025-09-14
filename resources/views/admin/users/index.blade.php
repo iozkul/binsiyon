@@ -23,6 +23,8 @@
                         <th>E-posta</th>
                         <th>Roller</th>
                         <th>Paket</th>
+                        <th>Üyelik Tarihi</th>
+                        <th>Ödenecek Tutar</th>
                         <th>Durum</th>
                         <th class="text-end">İşlemler</th>
                     </tr>
@@ -48,6 +50,8 @@
                                     <span class="badge bg-warning text-dark">Paket Yok</span>
                                 @endif
                             </td>
+                            <td>{{ $user->created_at->format('d/m/Y') }}</td>
+                            <td>{{ number_format($user->payable_amount, 2) }} TL</td>
                             <td>
                                 @if($user->banned_at)
                                     <span class="badge bg-danger">Engelli</span>

@@ -7,12 +7,17 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
+use App\Services\MoveResidentService;
+use App\Models\Unit;
+use Carbon\Carbon;
+
 
 class ResidentController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    /*
     public function index()
     {
 
@@ -67,6 +72,45 @@ class ResidentController extends Controller
 
 
     }
+*/
+    /*
+    public function index()
+    {
+        $user = Auth::user();
+
+        // Sorguyu başlat
+        $query = User::role(['resident', 'staff','super-admin','site-admin','block-admin']);
+
+        // Eğer kullanıcı super-admin değilse, sadece yönettiği sitelerdeki sakinleri göster
+        if (!$user->hasRole('super-admin')) {
+            // Site admin ise yönettiği sitelerdeki kullanıcıları getir
+            if ($user->hasRole('site-admin')) {
+                $managedSiteIds = $user->managedSites()->pluck('sites.id');
+                $query->whereIn('site_id', $managedSiteIds);
+            }
+            // Block admin ise yönettiği bloklardaki kullanıcıları getir
+            elseif ($user->hasRole('block-admin')) {
+                $managedBlockIds = $user->managedBlocks()->pluck('blocks.id');
+                // Bu bloklara bağlı dairelerdeki (unit) kullanıcıları bul
+                $query->whereHas('unit', function ($q) use ($managedBlockIds) {
+                    $q->whereIn('block_id', $managedBlockIds);
+                });
+            }
+        }
+        // super-admin ise hiçbir filtreleme yapma, tüm 'residence' rolündeki kullanıcıları getir
+
+        $residents = $query->latest()->paginate(10); // veya ->get();
+
+        return view('residents.index', compact('residents'));
+    } */
+    public function index()
+    {
+        // User::managed() diyerek yerel scope'u burada çağırıyoruz.
+        // Bu sayede filtreleme sadece bu sorgu için çalışır.
+        $residents = User::managed()->role(['resident', 'staff','super-admin','site-admin','block-admin'])->latest()->paginate(10);
+
+        return view('residents.index', compact('residents'));
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -105,7 +149,22 @@ class ResidentController extends Controller
      */
     public function update(Request $request, Resident $resident)
     {
-        //
+
+        // Policy'yi çağır. Yetkisi yoksa 403 Forbidden hatası döner.
+        $this->authorize('update', $resident);
+
+        // Önemli: Rol bazlı alan kontrolü
+        if (!$request->user()->hasRole('super-admin')) {
+            // Eğer güncelleyen kişi super-admin değilse,
+            // sadece izin verilen alanları al.
+            $data = $request->except(['name', 'email', 'phone_number']);
+        } else {
+            // super-admin ise tüm alanları al.
+            $data = $request->all();
+        }
+
+        $resident->update($data);
+
     }
 
     /**
@@ -118,17 +177,18 @@ class ResidentController extends Controller
 	public function showAssignForm()
     {
         // Hiçbir rolü olmayan kullanıcıları bul
-        $usersWithoutRoles = User::whereDoesntHave('roles')->get();
+        //$usersWithoutRoles = User::whereDoesntHave('roles')->get();
 
         // Atama yapmak için sistemdeki tüm rolleri al
         $roles = Role::all();
-
+        $usersWithoutRoles = User::doesntHave('roles')->get();
         // Verileri view'a gönder
         return view('residents.assign-roles', [
             'users' => $usersWithoutRoles,
             'roles' => $roles
         ]);
     }
+    /*
 	 public function assignRole(Request $request, User $user)
     {
         // Gelen veriyi doğrula: 'role' alanı zorunlu ve roles tablosunda var olmalı
@@ -142,5 +202,42 @@ class ResidentController extends Controller
 
         // Başarı mesajıyla birlikte bir önceki sayfaya yönlendir
         return back()->with('success', $user->name . ' kullanıcısına ' . $request->role . ' rolü başarıyla atandı.');
+    }*/
+
+    public function assignRole(Request $request)
+    {
+        // Gelen verinin doğruluğunu kontrol et (validation)
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'role_id' => 'required|exists:roles,id',
+        ]);
+
+        // Kullanıcıyı ve rolü bul
+        $user = User::findOrFail($request->user_id);
+        $role = Role::findOrFail($request->role_id);
+
+        // Rolü ata
+        $user->assignRole($role);
+
+        // Başarılı mesajıyla birlikte önceki sayfaya yönlendir
+        return redirect()->route('residents.index')->with('success', $user->name . ' kullanıcısına ' . $role->name . ' rolü başarıyla atandı.');
+    }
+    public function move(Request $request, User $resident, MoveResidentService $moveService)
+    {
+        $request->validate([
+            'new_unit_id' => 'required|exists:units,id',
+            'move_date' => 'required|date',
+        ]);
+
+        $newUnit = Unit::findOrFail($request->new_unit_id);
+        $moveDate = Carbon::parse($request->move_date);
+
+        $success = $moveService->handle($resident, $newUnit, $moveDate);
+
+        if ($success) {
+            return redirect()->back()->with('success', 'Sakin başarıyla yeni birime taşındı.');
+        }
+
+        return redirect()->back()->with('error', 'Taşınma işlemi sırasında bir hata oluştu.');
     }
 }

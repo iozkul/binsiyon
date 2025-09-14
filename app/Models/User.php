@@ -12,7 +12,8 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Site;
-
+use App\Models\Scopes\ManagedScope;
+use App\Models\Debt;
 
 
 class User extends Authenticatable
@@ -67,10 +68,46 @@ class User extends Authenticatable
 
         ];
     }
-	 public function site(): BelongsTo
+    public function sites()
+    {
+        // Birden çok site yönetimi için pivot tablo ilişkisi
+        return $this->belongsToMany(Site::class, 'site_user');
+    }
+
+
+    /**
+     * Bu scope, kullanıcı listesi sorgularını mevcut yöneticinin yetkilerine göre filtreler.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeManaged($query)
+    {
+        $user = auth()->user();
+
+        // Kullanıcı giriş yapmış ve super-admin değilse filtrele
+        if ($user && !$user->hasRole('super-admin')) {
+            if ($user->hasRole('site-admin')) {
+                $managedSiteIds = $user->managedSites()->pluck('sites.id');
+                return $query->whereIn('site_id', $managedSiteIds);
+            }
+
+            if ($user->hasRole('block-admin')) {
+                $managedBlockIds = $user->managedBlocks()->pluck('blocks.id');
+                return $query->whereHas('unit', function ($q) use ($managedBlockIds) {
+                    $q->whereIn('block_id', $managedBlockIds);
+                });
+            }
+        }
+
+        // Eğer super-admin ise veya kullanıcı girişi yoksa hiçbir filtreleme yapma
+        return $query;
+    }
+
+    public function site(): BelongsTo
     {
         // 'users' tablosunda 'site_id' adında bir sütun olduğunu varsayar.
-        return $this->belongsTo(Site::class);
+        return $this->belongsTo(Site::class, 'site_id');
     }
 
     /**
@@ -104,6 +141,10 @@ class User extends Authenticatable
     {
         //return $this->belongsToMany(Block::class, 'block_user');
         return $this->belongsToMany(Block::class, 'block_admins', 'user_id', 'block_id');
+    }
+    public function managedUnits()
+    {
+        return Unit::whereIn('block_id', $this->managedBlocks->pluck('id'));
     }
     public function getManagedBlockIds()
     {
@@ -140,5 +181,19 @@ class User extends Authenticatable
     public function readAnnouncements()
     {
         return $this->belongsToMany(Announcement::class, 'announcement_reads', 'user_id', 'announcement_id')->withTimestamps();
+    }
+
+    public function debts()
+    {
+        return $this->hasMany(Debt::class);
+    }
+
+// Toplam ödenmemiş borcu hesaplayan accessor
+    public function getPayableAmountAttribute()
+    {
+        // 'status' alanı 'paid' olmayan borçların toplamı
+        // db_binsiyon.sql dosyanızda 'debts' tablosunda status alanı varsayıyorum.
+        // Eğer farklı bir mantık varsa (örn. 'paid_at' null ise), burası güncellenmeli.
+        return $this->debts()->where('status', '!=', 'paid')->sum('amount');
     }
 }

@@ -11,6 +11,9 @@ use App\Models\Announcement; // Varsayımsal model, bkz. Madde 3
 use App\Models\Message; // Varsayımsal model
 use App\Models\Fixture;
 use App\Policies\FixturePolicy;
+use App\Models\User;
+use App\Observers\UserObserver;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        User::observe(UserObserver::class);
 
         View::composer('*', function ($view) {
             if (Auth::check()) {
