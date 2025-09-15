@@ -17,9 +17,16 @@ use App\Models\Income;
 use App\Models\Expense;
 use App\Models\Fee;
 use App\Models\Debt;
+use Modules\Finance\app\Services\DashboardService;
 
 class DashboardController extends Controller
 {
+    protected $dashboardService;
+
+    public function __construct(DashboardService $dashboardService)
+    {
+        $this->dashboardService = $dashboardService;
+    }
     public function index()
     {
         $user = Auth::user();

@@ -112,7 +112,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('blocks', BlockController::class);
         Route::get('/sites', [SiteController::class, 'index'])->name('sites.index')
             ->middleware(['can:manage sites']); // <-- Sadece 'site-list' izni olanlar girebilir
-        // Diğer site yönetimi rotaları...
+
+        Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {
+            Route::resource('monthly-dues', App\Http\Controllers\Finance\MonthlyDuesController::class);
+        });
+
     });
     Route::resource('fixtures', FixtureController::class);
     Route::resource('reservations', ReservationController::class)->middleware('permission:manage sites');

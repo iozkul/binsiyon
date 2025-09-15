@@ -27,8 +27,25 @@
                 @endcan
                 @endrole
 
+                @hasanyrole('super-admin|site-admin|accountant')
+                <x-nav-link :href="route('finance.monthly-dues.index')" :active="request()->routeIs('finance.*')">
+                    Finans Yönetimi
+                </x-nav-link>
+                @endhasanyrole
 
+                @hasanyrole('resident|property_owner')
+                <x-nav-link :href="route('my-finances.index')" :active="request()->routeIs('my-finances.*')">
+                    Borçlarım ve Ödemelerim
+                </x-nav-link>
+                @endhasanyrole
+
+                @can('viewAny', App\Models\Site::class)
+                    <x-nav-link :href="route('sites.index')" :active="request()->routeIs('sites.*')">
+                        Site Yönetimi
+                    </x-nav-link>
+                @endcan
             @can('manage finance')
+
                 <li class="nav-item">
                     {{-- Bu link, alt menüyü açıp kapatan ana başlık olacak --}}
                     <a class="nav-link text-white" href="#financeSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="financeSubmenu">
