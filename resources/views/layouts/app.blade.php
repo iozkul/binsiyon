@@ -28,9 +28,10 @@
                 @endrole
 
                 @hasanyrole('super-admin|site-admin|accountant')
-                <x-nav-link :href="route('finance.monthly-dues.index')" :active="request()->routeIs('finance.*')">
+                <!--<x-nav-link :href="route('finance.monthly-dues.index')" :active="request()->routeIs('finance.*')">
                     Finans Yönetimi
-                </x-nav-link>
+                </x-nav-link>-->
+
                 @endhasanyrole
 
                 @hasanyrole('resident|property_owner')
@@ -38,12 +39,6 @@
                     Borçlarım ve Ödemelerim
                 </x-nav-link>
                 @endhasanyrole
-
-                @can('viewAny', App\Models\Site::class)
-                    <x-nav-link :href="route('sites.index')" :active="request()->routeIs('sites.*')">
-                        Site Yönetimi
-                    </x-nav-link>
-                @endcan
             @can('manage finance')
 
                 <li class="nav-item">
@@ -54,6 +49,12 @@
                     {{-- Alt menü içeriği bu div içinde --}}
                     <div class="collapse" id="financeSubmenu">
                         <ul class="nav flex-column ms-3"> {{-- ms-3 ile içeriden başlatıyoruz --}}
+                            <li class="nav-item">
+                                @if (Route::has('finance.monthly-dues.index'))
+                                    <a class="nav-link text-white py-1" href="{{ route('finance.monthly-dues.index') }}">Aylık Aidatlar</a>
+
+                                @endif
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-white py-1" href="{{ route('fees.index') }}">Aidat Yönetimi</a>
                             </li>

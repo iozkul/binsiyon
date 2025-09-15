@@ -33,7 +33,7 @@ use App\Http\Controllers\Admin\PackageController;
 //use App\Http\Controllers\Admin\FixtureController as AdminFixtureController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-
+use Modules\Finance\app\Http\Controllers\MonthlyDueController;
 /*
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
@@ -83,7 +83,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:super-admin'])->prefix('admin')->name('admin.')->group(function ()
     {
             // Örn: Yeni profesyonel yönetim firması tanımlama, genel sistem ayarları vb.
-            Route::get('/settings', [SuperAdminController::class, 'settings'])
+            Route::get('/settings', [AdminUserController::class, 'settings'])
             ->name('settings');
             // Kullanıcı yönetimi rotasını da buraya alabiliriz.
             Route::get('/users', [AdminUserController::class, 'index'])
@@ -113,13 +113,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/sites', [SiteController::class, 'index'])->name('sites.index')
             ->middleware(['can:manage sites']); // <-- Sadece 'site-list' izni olanlar girebilir
 
-        Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {
-            Route::resource('monthly-dues', App\Http\Controllers\Finance\MonthlyDuesController::class);
-        });
+
 
     });
     Route::resource('fixtures', FixtureController::class);
     Route::resource('reservations', ReservationController::class)->middleware('permission:manage sites');
+    Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {
+        Route::resource('monthly-dues', MonthlyDueController::class);
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

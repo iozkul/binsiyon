@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Finance\Http\Controllers;
+namespace Modules\Finance\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -53,4 +53,10 @@ class FinanceController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy($id) {}
+    public function monthlyDues()
+    {
+        // Henüz bir view oluşturmadıysak, geçici bir yanıt döndürebiliriz.
+        // return view('finance::monthly-dues.index');
+        return "Aylık Aidatlar Sayfası";
+    }
 }
