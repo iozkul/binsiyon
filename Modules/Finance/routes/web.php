@@ -8,6 +8,10 @@ use Modules\Finance\app\Http\Controllers\InvoiceController;
 use Modules\Finance\app\Http\Controllers\MyFinancesController;
 use Modules\Finance\app\Http\Controllers\FinanceController;
 
+use Modules\Finance\app\Http\Controllers\IncomeController;
+use Modules\Finance\app\Http\Controllers\ExpenseController;
+
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('finances', FinanceController::class)->names('finance');
 });
@@ -41,4 +45,20 @@ Route::middleware(['auth', 'role:super-admin|site-admin|accountant'])
             // Diğer CRUD operasyonları için rotalar (create, store, edit, update, destroy) buraya eklenebilir.
         });
 
+        Route::middleware('role:super_admin|site_owner|accountant')->group(function () {
+            Route::resource('monthly-dues', MonthlyDueController::class);
+            Route::resource('incomes', IncomeController::class);
+            Route::resource('expenses', ExpenseController::class);
+            Route::resource('payments', PaymentController::class);
+        });
+
+
+    });
+
+// Sakin/Mülk Sahibi Rotaları
+Route::middleware(['auth', 'role:resident|property_owner'])
+    ->prefix('my-finances')
+    ->name('my-finances.')
+    ->group(function () {
+        Route::get('/', [MyFinancesController::class, 'index'])->name('index');
     });

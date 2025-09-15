@@ -34,6 +34,8 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Modules\Finance\app\Http\Controllers\MonthlyDueController;
+use App\Http\Controllers\Admin\SiteModuleController;
+
 /*
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
@@ -103,7 +105,8 @@ Route::middleware('auth')->group(function () {
         Route::post('users/{user}/roles', [\App\Http\Controllers\Admin\UserController::class, 'assignRoles'])->name('users.assignRoles');
         Route::get('users/{user}/roles', [\App\Http\Controllers\Admin\UserController::class, 'manageRoles'])->name('users.manageRoles');
         Route::get('activity-logs', [\App\Http\Controllers\Admin\UserActivityLogController::class, 'index'])->name('logs.index');
-
+        Route::get('sites/{site}/modules', [SiteModuleController::class, 'edit'])->name('sites.modules.edit');
+        Route::post('sites/{site}/modules', [SiteModuleController::class, 'update'])->name('sites.modules.update');
 
     });
     // SİTE-ADMİN ve SÜPER-ADMİN'İN ERİŞEBİLECEĞİ ALANLAR
