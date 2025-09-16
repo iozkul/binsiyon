@@ -15,7 +15,19 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    @if(Auth::check() && Auth::user()->is_admin)
+                    @can('manage budgets')
+                        <x-nav-link :href="route('budgets.index')" :active="request()->routeIs('budgets.*')">
+                            {{ __('Bütçeler') }}
+                        </x-nav-link>
+                    @endcan
+
+                    @can('view reports')
+                        <x-nav-link :href="route('reports.income-expense')" :active="request()->routeIs('reports.*')">
+                            {{ __('Raporlar') }}
+                        </x-nav-link>
+                    @endcan
+
+                @if(Auth::check() && Auth::user()->is_admin)
                         <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                             <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.index')">
                                 {{ __('Kullanıcı Yönetimi') }}

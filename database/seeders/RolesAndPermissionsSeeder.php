@@ -32,6 +32,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'use maintenance',
             'use packages',
             'use iot',
+            'manage budgets',       // Bütçe yönetimi (Faz 1)
+            'approve expenses',     // Giderleri onaylama (Faz 3)
+            'manage bank accounts', // Banka ve Kasa hesaplarını yönetme (Faz 4)
+            'manage vendors',       // Tedarikçileri yönetme (Faz 4)
+            'view finance',         // Finansal verileri sadece görüntüleme (Denetçi için)
         ];
 
         foreach ($permissions as $permission) {
@@ -65,8 +70,21 @@ class RolesAndPermissionsSeeder extends Seeder
             'view reports',
             'use reservations',
             'use maintenance',
+            'manage budgets', 'approve expenses', 'manage bank accounts', 'manage vendors', 'view finance'
+        ]);
+// Accountant (Muhasebeci)
+        Role::firstOrCreate(['name' => 'accountant'])
+        ->givePermissionTo([
+            'manage finance', 'manage payments', 'view reports', 'view incomes', 'create expenses',
+            // --- YENİ EKLENEN YETKİLER ---
+            'manage bank accounts', 'manage vendors', 'view finance'
         ]);
 
+        // Auditor (Denetçi) - YENİ ROL
+        Role::firstOrCreate(['name' => 'auditor'])->givePermissionTo([
+            'view reports',
+            'view finance',
+        ]);
         Role::findByName('block-admin')->givePermissionTo([
             'manage apartments',
             'manage residents',
@@ -84,6 +102,8 @@ class RolesAndPermissionsSeeder extends Seeder
         Role::findByName('property-owner')->givePermissionTo([
             'manage apartments',
             'manage residents',
+            'approve expenses',
+            'view reports',
         ]);
     }
 }

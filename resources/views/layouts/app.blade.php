@@ -55,6 +55,12 @@
 
                                 @endif
                             </li>
+                            @can('manage budgets')
+                                <li class=" nav-item {{ request()->routeIs('budgets.*') ? 'active' : '' }}"><a class="d-flex align-items-center" href="{{ route('budgets.index') }}"><i
+                                            data-feather="file-text"></i><span class="menu-title text-truncate"
+                                                                               data-i18n="Layouts">Bütçeler</span></a>
+                                </li>
+                            @endcan
                             <li class="nav-item">
                                 <a class="nav-link text-white py-1" href="{{ route('fees.index') }}">Aidat Yönetimi</a>
                             </li>

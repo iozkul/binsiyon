@@ -126,6 +126,16 @@ Route::middleware('auth')->group(function () {
         Route::resource('monthly-dues', MonthlyDueController::class);
     });
     Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
+    Route::get('/reports/income-expense', [ReportController::class, 'incomeExpense'])->name('reports.income-expense');
+    Route::get('/reports/debtors', [ReportController::class, 'debtors'])->name('reports.debtors');
+// Gecikme faizi hesaplama rotası
+    Route::post('/finance/calculate-late-fees', [FinanceController::class, 'calculateLateFees'])
+        ->name('finance.calculate-late-fees')
+        ->middleware('can:manage finance');
+    Route::resource('expenses', ExpenseController::class);
+    Route::post('/expenses/{expense}/status', [ExpenseController::class, 'updateStatus'])->name('expenses.updateStatus');
+    Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
+
 
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
