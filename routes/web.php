@@ -34,6 +34,10 @@ use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Modules\Finance\app\Http\Controllers\MonthlyDueController;
+use App\Http\Controllers\BudgetController;
+
+
+
 /*
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
@@ -121,6 +125,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {
         Route::resource('monthly-dues', MonthlyDueController::class);
     });
+    Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
+
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Fee;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use App\Enums\Permissions;
 
 class FeePolicy
 {
@@ -24,14 +25,14 @@ class FeePolicy
         if ($user->hasRole('site-admin')) {
             return $user->managedSites->contains($fee->site_id);
         }
-        return false;
+        return $user->can('edit dues');
     }
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->can(Permissions::LIST_DUES->value);
     }
 
     /**
@@ -39,7 +40,7 @@ class FeePolicy
      */
     public function view(User $user, Fee $fee): bool
     {
-        return false;
+        return $user->can(Permissions::VIEW_DUES->value);
     }
 
     /**
@@ -47,7 +48,7 @@ class FeePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->can('create dues');
     }
 
 
@@ -57,7 +58,7 @@ class FeePolicy
      */
     public function delete(User $user, Fee $fee): bool
     {
-        return false;
+        return $user->can('delete dues');
     }
 
     /**
@@ -65,7 +66,7 @@ class FeePolicy
      */
     public function restore(User $user, Fee $fee): bool
     {
-        return false;
+        return $user->hasRole('site-admin');
     }
 
     /**
@@ -73,6 +74,6 @@ class FeePolicy
      */
     public function forceDelete(User $user, Fee $fee): bool
     {
-        return false;
+        return $user->hasRole('super-admin');
     }
 }
