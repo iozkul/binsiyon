@@ -4,169 +4,146 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use App\Models\Site;
-
-use App\Models\SupportTicket;
-use App\Models\Message;
-use App\Models\Payment;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\Cache;
-use App\Models\Income;
-use App\Models\Expense;
 use App\Models\Fee;
-use App\Models\Debt;
-use Modules\Finance\app\Services\DashboardService;
+use App\Models\Expense;
+use App\Models\Announcement;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    protected $dashboardService;
-
-    public function __construct(DashboardService $dashboardService)
-    {
-        $this->dashboardService = $dashboardService;
-    }
+    /**
+     * Display the appropriate dashboard based on the user's role.
+     *
+     * @return \Illuminate\View\View
+     */
     public function index()
     {
         $user = Auth::user();
+        $data = [];
 
-
-        // 1. SÜPER-ADMIN İÇİN ÖZEL DASHBOARD
-        // Süper-admin tüm sistemi görür.
         if ($user->hasRole('super-admin')) {
-
-            // Yavaş olan User::count() yerine HIZLI olan yaklaşık sayım yöntemini kullanıyoruz.
-            $totalUsers = Cache::remember('stats_total_users', now()->addMinutes(5), function () {
-                $lastUser = User::latest('id')->first();
-                return $lastUser ? $lastUser->id : 0; // Yaklaşık kullanıcı sayısı
-            });
-
-            $stats = [
-                'total_users' => $totalUsers,
-                'total_sites' => Site::count(), // Site sayısı az olduğu için bu hızlı çalışır.
-
-            ];
-            $recent_users = User::latest()->take(5)->get();
-            $recent_sites = Site::latest()->take(5)->get();
-
-            return view('admin.super_admin_dashboard', compact( // Farklı bir view dosyası
-                'user',
-                'stats',
-                'recent_users',
-                'recent_sites'
-            ));
-        }
-/*
-        // 2. SITE-ADMIN İÇİN ÖZEL DASHBOARD
-        // Site-admin sadece kendi sitesiyle ilgili verileri görür.
-        if ($user->hasAnyRole(['site-admin', 'block-admin'])) {
-            $siteId = $user->site_id;
-            $stats = [
-                // Performans için yavaş olan User::count() sorgusunu kaldırıp,
-                // sadece o sitedeki kullanıcıları sayıyoruz.
-                'total_users' => User::where('site_id', $siteId)->count(),
-                'total_sites' => 1,
-            ];
-
-            // Değişken adını view'in beklediği 'recent_users' yapıyoruz.
-            $recent_users = User::where('site_id', $siteId)->latest()->take(5)->get();
-
-            // super-admin'de olduğu gibi recent_sites değişkenini de ekleyelim ki view hata vermesin.
-            // Boş bir collection gönderiyoruz.
-            $recent_sites = collect();
-
-            return view('admin.dashboard', compact('user', 'stats', 'recent_users', 'recent_sites'));
-        }
-*/
-        // 2. YÖNETİCİ (SITE-ADMIN / BLOCK-ADMIN) DASHBOARD'U
-        if ($user->hasAnyRole(['site-admin', 'block-admin'])) {
-            $stats = [];
-            $recent_users = collect();
-
-            if ($user->hasRole('site-admin')) {
-                /*
-                // Site-admin ise, yönettiği sitelerdeki kullanıcıları say
-                $managedSiteIds = $user->managedSites()->pluck('id');
-                $stats['total_users'] = User::whereIn('site_id', $managedSiteIds)->count();
-                $recent_users = User::whereIn('site_id', $managedSiteIds)->latest()->take(5)->get();
-*/
-                // 1. Yöneticinin sorumlu olduğu site ID'lerini al
-                $managedSiteIds = $user->managedSites()->pluck('id');
-
-                if ($managedSiteIds->isEmpty()) {
-                    // Yönettiği site yoksa boş veri ile dashboard'u göster
-                    return view('dashboard', ['stats' => []]);
-                }
-
-                // 2. Gerekli istatistikleri doğrudan veritabanında hesapla
-                $totalResidents = User::role('resident')->whereIn('site_id', $managedSiteIds)->count();
-                $totalUnits = \App\Models\Unit::whereHas('block', function ($query) use ($managedSiteIds) {
-                    $query->whereIn('site_id', $managedSiteIds);
-                })->count();
-
-                // 3. Gelir ve Gider toplamlarını veritabanında topla
-                $totalIncome = Income::whereIn('site_id', $managedSiteIds)->sum('amount');
-                $totalExpense = Expense::whereIn('site_id', $managedSiteIds)->sum('amount');
-
-                $balance = $totalIncome - $totalExpense;
-
-                // 4. Diğer istatistikler (Örnek: Aidat ve borçlar)
-                /*
-                $totalFees = \App\Models\Fee::whereIn('site_id', $managedSiteIds)->sum('amount');
-                $totalDebts = \App\Models\Debt::whereIn('site_id', $managedSiteIds)->where('status', 'unpaid')->sum('amount');
-*/
-                $totalFees = \App\Models\Fee::whereHas('user', function ($query) use ($managedSiteIds) {
-                    $query->whereIn('site_id', $managedSiteIds);
-                })->sum('amount');
-
-// Bu kod, Debt (Borç) modelinin 'user' ilişkisi üzerinden site kontrolü yapar.
-                $totalDebts = \App\Models\Debt::whereHas('user', function ($query) use ($managedSiteIds) {
-                    $query->whereIn('site_id', $managedSiteIds);
-                })->where('status', 'unpaid')->sum('amount');
-
-                // 5. Verileri view'e gönder
-                $stats = [
-                    'totalResidents' => $totalResidents,
-                    'totalUnits' => $totalUnits,
-                    'totalIncome' => number_format($totalIncome, 2, ',', '.'),
-                    'totalExpense' => number_format($totalExpense, 2, ',', '.'),
-                    'balance' => number_format($balance, 2, ',', '.'),
-                    'totalFees' => number_format($totalFees, 2, ',', '.'),
-                    'totalDebts' => number_format($totalDebts, 2, ',', '.'),
-                ];
-
-                // Yönlendirilecek view dosyasının adını projenize göre (örn: 'site-admin.dashboard') güncelleyebilirsiniz.
-                return view('dashboard', compact('stats'));
-            } elseif ($user->hasRole('block-admin')) {
-                // Block-admin ise, yönettiği bloklardaki kullanıcıları say
-                $managedBlockIds = $user->managedBlocks()->pluck('blocks.id');
-                // Bu bloklara bağlı birimlerdeki (unit) kullanıcıları bul
-                $stats['total_users'] = User::whereHas('unit', function ($query) use ($managedBlockIds) {
-                    $query->whereIn('block_id', $managedBlockIds);
-                })->count();
-                $recent_users = User::whereHas('unit', function ($query) use ($managedBlockIds) {
-                    $query->whereIn('block_id', $managedBlockIds);
-                })->latest()->take(5)->get();
-            }
-
-            // View'ın hata vermemesi için bu değişkenleri her zaman tanımlıyoruz
-            $recent_sites = collect();
-            $stats['total_sites'] = $user->managedSites()->count() ?: 1; // Yönettiği site yoksa 1 göster
-
-            return view('admin.dashboard', compact('user', 'stats', 'recent_users', 'recent_sites'));
+            $view = 'admin.super_admin_dashboard';
+            $data = $this->getSuperAdminData();
+        } elseif ($user->hasRole('site-admin')) {
+            $view = 'dashboards.site-admin';
+            $data = $this->getSiteAdminData($user);
+        } elseif ($user->hasRole('block-admin')) {
+            $view = 'dashboards.block-admin';
+            $data = $this->getBlockAdminData($user);
+        } elseif ($user->hasRole('accountant')) {
+            $view = 'dashboards.accountant';
+            $data = $this->getAccountantData($user);
+        } elseif ($user->hasRole('resident')) {
+            $view = 'dashboards.resident';
+            $data = $this->getResidentData($user);
+        } elseif ($user->hasRole('property-owner')) {
+            $view = 'dashboards.property-owner';
+            $data = $this->getPropertyOwnerData($user);
+        } elseif ($user->hasRole('staff')) {
+            $view = 'dashboards.staff';
+            $data = $this->getStaffData($user);
+        } elseif ($user->hasRole('auditor')) {
+            $view = 'dashboards.auditor';
+            $data = $this->getAuditorData($user);
+        } else {
+            // Varsayılan dashboard
+            $view = 'dashboard';
         }
 
-        // 3. MÜLK SAHİBİ PANELİ
-        if ($user->hasRole('property-owner') && !$user->unit_id) {
-            $ownedUnits = $user->ownedUnits()->with('residents')->get();
-            return view('owner.dashboard', compact('ownedUnits'));
-        }
-
-        // 4. SAKİN PANELİ (Bu kısım zaten hızlı çalışıyordu)
-        $user->load('unit.block.site', 'unit.parkingSpaces');
-        $unpaidFees = $user->fees()->whereNull('paid_at')->get();
-
-        return view('residents.dashboard', compact('user', 'unpaidFees'));
+        return view($view, $data);
     }
+
+    // --- Her Rol İçin Veri Çekme Metotları ---
+
+    private function getSuperAdminData()
+    {
+        return [
+            'total_sites' => Site::count(),
+            'total_users' => \App\Models\User::count(),
+            // Diğer global metrikler...
+        ];
+    }
+
+    private function getSiteAdminData($user)
+    {
+        $siteId = $user->site_id;
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        return [
+            'total_income_this_month' => Fee::where('site_id', $siteId)->whereBetween('paid_at', [$startOfMonth, $endOfMonth])->sum('amount'),
+            'total_expense_this_month' => Expense::where('site_id', $siteId)->whereBetween('expense_date', [$startOfMonth, $endOfMonth])->sum('amount'),
+            'due_fees_count' => Fee::where('site_id', $siteId)->where('status', 'unpaid')->where('due_date', '<', Carbon::now())->count(),
+            'latest_announcements' => Announcement::where('site_id', $siteId)->latest()->take(5)->get(),
+        ];
+    }
+
+    private function getAccountantData($user)
+    {
+        // getSiteAdminData ile benzer olabilir, finansal odaklı eklemeler yapılabilir.
+        $siteId = $user->site_id;
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        return [
+            'total_income_this_month' => Fee::where('site_id', $siteId)->whereBetween('paid_at', [$startOfMonth, $endOfMonth])->sum('amount'),
+            'total_expense_this_month' => Expense::where('site_id', $siteId)->whereBetween('expense_date', [$startOfMonth, $endOfMonth])->sum('amount'),
+            'total_due_amount' => Fee::where('site_id', $siteId)->where('status', 'unpaid')->where('due_date', '<', Carbon::now())->sum('amount'),
+            'latest_payments' => \App\Models\Payment::where('site_id', $siteId)->latest()->take(10)->get(),
+        ];
+    }
+
+
+    private function getResidentData($user)
+    {
+        return [
+            'my_total_debt' => Fee::where('user_id', $user->id)->where('status', 'unpaid')->sum('amount'),
+            'my_latest_fees' => Fee::where('user_id', $user->id)->latest()->take(5)->get(),
+            'latest_announcements' => Announcement::where('site_id', $user->site_id)->latest()->take(5)->get(),
+        ];
+    }
+
+    // Diğer roller için benzer metotlar (getBlockAdminData, getPropertyOwnerData vb.) oluşturulmalıdır.
+    // Bu metotlar, kullanıcının ilişkili olduğu blok veya mülkleri dikkate alarak veri çekmelidir.
+
+    private function getBlockAdminData($user) {
+        // block_user pivot tablosundan kullanıcının yönettiği blokları al
+        $blockIds = $user->blocks()->pluck('blocks.id');
+
+        return [
+            'block_names' => $user->blocks()->pluck('blocks.name')->implode(', '),
+            'due_fees_count_in_blocks' => Fee::whereIn('block_id', $blockIds)->where('status', 'unpaid')->where('due_date', '<', Carbon::now())->count(),
+            'latest_announcements_in_blocks' => Announcement::whereIn('block_id', $blockIds)->latest()->take(5)->get(),
+        ];
+    }
+
+    private function getPropertyOwnerData($user) {
+        // Mülk sahibinin sahip olduğu unit'leri bul
+        $unitIds = \App\Models\Unit::where('owner_id', $user->id)->pluck('id');
+
+        return [
+            'total_units' => $unitIds->count(),
+            'units_total_debt' => Fee::whereIn('unit_id', $unitIds)->where('status', 'unpaid')->sum('amount'),
+            'latest_announcements' => Announcement::where('site_id', $user->site_id)->latest()->take(5)->get(),
+        ];
+    }
+
+    private function getStaffData($user) {
+        return [
+            // Staff için görev/bakım modülü entegre edildiğinde burası doldurulacak.
+            'assigned_tasks' => [],
+        ];
+    }
+
+    private function getAuditorData($user) {
+        // getAccountantData ile benzer veriler sunulabilir, fakat sadece görüntüleme amaçlı.
+        $siteId = $user->site_id;
+        return [
+            'total_income_all_time' => \App\Models\Income::where('site_id', $siteId)->sum('amount'),
+            'total_expense_all_time' => Expense::where('site_id', $siteId)->sum('amount'),
+            'latest_transactions' => \App\Models\Transaction::where('site_id', $siteId)->latest()->take(20)->get(),
+        ];
+    }
+
 }

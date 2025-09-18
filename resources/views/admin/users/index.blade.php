@@ -1,12 +1,9 @@
-{{-- resources/views/admin/users/index.blade.php --}}
-
-{{-- Layout'unuzun başlangıç kodları (extends, section vb.) --}}
-@extends('layouts.app') {{-- Örnek layout adı --}}
-
-@section('content')
-    <div class="container">
-        <h1>Kullanıcı Yönetimi</h1>
-
+<x-admin-layout>
+    <x-slot name="header">
+        <h2 class="h4 font-weight-bold">
+            {{ __('Kullanıcı Yönetimi') }}
+        </h2>
+    </x-slot>
         {{-- Başarı veya hata mesajlarını göstermek için --}}
         @if (session('success'))
             <div class="alert alert-success">
@@ -84,6 +81,6 @@
         <div class="mt-3">
             {{ $users->links() }}
         </div>
-    </div>
-@endsection
+
+</x-admin-layout>
 {{-- Layout'unuzun bitiş kodları --}}

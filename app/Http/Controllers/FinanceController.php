@@ -7,25 +7,42 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Fee;
 use App\Models\LateFee;
 use Carbon\Carbon;
+use App\Models\Income;
+use App\Models\Payment;
+use App\Models\Expense;
 
 class FinanceController extends Controller
 {
     public function index()
     {
-        // Bu yetki kontrolünü eklemek iyi bir pratiktir.
-        // Spatie seeder'ınızda 'manage finance' yetkisini oluşturmuştuk.
-        $this->authorize('manage finance');
+        $siteId = Auth::user()->site_id;
 
-        // Gelecekte buraya aidat, borç gibi verileri çekecek kodlar gelecek.
-        // Şimdilik sadece view'ı döndürelim.
-        return view('finance.index');
+        if (!$siteId && !Auth::user()->hasRole('super-admin')) {
+            // Super-admin değilse ve bir sitesi yoksa, finansal veri göremez.
+            return view('finance.index', [
+                'totalIncome' => 0,
+                'totalExpense' => 0,
+                'totalDebt' => 0,
+                'error' => 'Herhangi bir siteye yönetici olarak atanmamışsınız.'
+            ]);
+        }
+
+        // Artık sorgular doğrudan ve çok daha hızlı çalışacak.
+        $totalIncome = Income::where('site_id', $siteId)->sum('amount');
+        $totalExpense = Expense::where('site_id', 'paid')->sum('amount');
+
+        $totalDues = Fee::where('site_id', $siteId)->sum('amount');
+        $totalPayments = Payment::where('site_id', $siteId)->sum('amount');
+        $totalDebt = $totalDues - $totalPayments;
+
+        return view('finance.index', compact('totalIncome', 'totalExpense', 'totalDebt'));
     }
 
     public function calculateLateFees(Request $request)
     {
         $siteId = Auth::user()->site_id;
         if (!$siteId) {
-            return redirect()->back()->with('error', 'Site bilgisi bulunamadı.');
+            return redirect()->back()->with('error', 'İşlem yapılacak bir site seçili değil.');
         }
 
         // Kat Mülkiyeti Kanunu'na göre aylık %5 gecikme tazminatı

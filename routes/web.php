@@ -35,6 +35,8 @@ use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Modules\Finance\app\Http\Controllers\MonthlyDueController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\ActiveContextController;
+use App\Http\Controllers\SiteSettingController;
 
 
 
@@ -88,10 +90,10 @@ Route::middleware('auth')->group(function () {
     {
             // Örn: Yeni profesyonel yönetim firması tanımlama, genel sistem ayarları vb.
             Route::get('/settings', [AdminUserController::class, 'settings'])
-            ->name('settings');
+                ->name('settings');
             // Kullanıcı yönetimi rotasını da buraya alabiliriz.
             Route::get('/users', [AdminUserController::class, 'index'])
-            ->name('users.index');
+                ->name('users.index');
             Route::post('/users/{user}/ban', [AdminUserController::class, 'ban'])->name('users.ban');
             Route::post('/users/{user}/unban', [AdminUserController::class, 'unban'])->name('users.unban');
             Route::delete('/sites/{site}', [SiteController::class, 'destroy'])
@@ -108,14 +110,21 @@ Route::middleware('auth')->group(function () {
         Route::get('users/{user}/roles', [\App\Http\Controllers\Admin\UserController::class, 'manageRoles'])->name('users.manageRoles');
         Route::get('activity-logs', [\App\Http\Controllers\Admin\UserActivityLogController::class, 'index'])->name('logs.index');
 
+        Route::resource('sites', App\Http\Controllers\SuperAdmin\SiteController::class);
 
     });
     // SİTE-ADMİN ve SÜPER-ADMİN'İN ERİŞEBİLECEĞİ ALANLAR
     Route::middleware(['role:super-admin|site-admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::resource('sites', SiteController::class);
         Route::resource('blocks', BlockController::class);
+        Route::resource('site-settings', SiteSettingController::class);
         Route::get('/sites', [SiteController::class, 'index'])->name('sites.index')
             ->middleware(['can:manage sites']); // <-- Sadece 'site-list' izni olanlar girebilir
+
+//site yönetim ayarları
+        Route::get('/site-settings', [SiteSettingController::class, 'index'])->name('site-settings.index')
+            ->middleware(['can:manage sites']);
+        //Route::post('/site-settings', [SiteSettingController::class, 'update'])->name('site-settings.update');
 
 
 
@@ -128,6 +137,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
     Route::get('/reports/income-expense', [ReportController::class, 'incomeExpense'])->name('reports.income-expense');
     Route::get('/reports/debtors', [ReportController::class, 'debtors'])->name('reports.debtors');
+    Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
 // Gecikme faizi hesaplama rotası
     Route::post('/finance/calculate-late-fees', [FinanceController::class, 'calculateLateFees'])
         ->name('finance.calculate-late-fees')
@@ -135,6 +145,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('expenses', ExpenseController::class);
     Route::post('/expenses/{expense}/status', [ExpenseController::class, 'updateStatus'])->name('expenses.updateStatus');
     Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
+    Route::get('/select-site', [ActiveContextController::class, 'selectSite'])->name('context.selectSite');
+    Route::post('/switch-site', [ActiveContextController::class, 'switchSite'])->name('context.switchSite');
 
 
 

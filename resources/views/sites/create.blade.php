@@ -1,7 +1,10 @@
-@extends('layouts.app')
+<x-admin-layout>
+    <x-slot name="header">
+        <h2 class="h4 font-weight-bold">
+            {{ __('Birim Yönetimi (Daire/İş Yeri)') }}
+        </h2>
+    </x-slot>
 
-@section('content')
-    <div class="container">
         <div class="card">
             <div class="card-header">Yeni Site Oluştur</div>
             <div class="card-body">
@@ -70,7 +73,7 @@
                 </form>
             </div>
         </div>
-    </div>
+
 
     <script>
         // Sayfa yüklendiğinde ve blok sayısı input'u değiştiğinde çalışacak fonksiyon
@@ -128,4 +131,4 @@
             }
         }
     </script>
-@endsection
+</x-admin-layout>

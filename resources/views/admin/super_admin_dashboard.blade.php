@@ -1,98 +1,57 @@
-@extends('layouts.app') {{-- Kendi ana layout'unuzu kullanın --}}
-
+{{-- ESKİ YAPI (Bu satırları silin):
+@extends('layouts.app')
 @section('content')
-    <div class="container-fluid">
-        <h3 class="mb-4">Yönetim Paneli - Genel Durum</h3>
+--}}
 
-        {{-- Üst Kısımdaki İstatistik Kartları --}}
-        <div class="row">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-primary shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Toplam Kullanıcı Sayısı</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['total_users'] }}</div>
-                            </div>
-                            <div class="col-auto">
-                                {{-- FontAwesome ikonları için, projenize ekli değilse bu satırı silebilirsiniz --}}
-                                <i class="fas fa-users fa-2x text-gray-300"></i>
-                            </div>
+{{-- YENİ YAPI (Bu satırları ekleyin): --}}
+<x-admin-layout>
+    {{-- Eğer bir sayfa başlığı (header) kullanıyorsanız, onu bu şekilde "header" isimli slota yerleştirin --}}
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Super Admin Dashboard') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+
+                    {{-- BURASI, SİZİN DASHBOARD'UNUZUN GERÇEK İÇERİĞİNİN OLDUĞU YER --}}
+
+                    <p>Hoş geldiniz, {{ Auth::user()->name }}!</p>
+                    <p>Burası süper yönetici panelidir. Tüm siteyi buradan yönetebilirsiniz.</p>
+
+                    {{-- Örnek İstatistik Kartları --}}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+                        <div class="bg-blue-100 p-4 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold">Toplam Kullanıcı</h3>
+                            <p class="text-2xl">{{ $stats['total_users'] ?? 'N/A' }}</p>
+                        </div>
+                        <div class="bg-green-100 p-4 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold">Toplam Site</h3>
+                            <p class="text-2xl">{{ $stats['total_sites'] ?? 'N/A' }}</p>
+                        </div>
+                        <div class="bg-yellow-100 p-4 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold">Okunmamış Mesaj</h3>
+                            <p class="text-2xl">{{ $unreadMessagesCount ?? 'N/A' }}</p>
+                        </div>
+                        <div class="bg-indigo-100 p-4 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold">Okunmamış Duyuru</h3>
+                            <p class="text-2xl">{{ $unreadAnnouncementsCount ?? 'N/A' }}</p>
                         </div>
                     </div>
+
+                    {{-- ... Diğer dashboard bileşenleriniz buraya gelebilir ... --}}
+
                 </div>
             </div>
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card border-left-success shadow h-100 py-2">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    Toplam Site Sayısı</div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['total_sites'] }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-building fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {{-- Buraya "Toplam Gelir", "Bekleyen Talep Sayısı" gibi başka kartlar eklenebilir --}}
         </div>
-
-
-        {{-- Alt Kısımdaki Detaylı Listeler --}}
-        <div class="row">
-
-            {{-- Son Kaydolan Kullanıcılar Paneli --}}
-            <div class="col-lg-6 mb-4">
-                <div class="card shadow">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-primary">Son Kaydolan Kullanıcılar</h6>
-                        <a href="{{ route('users.index') }}" class="btn btn-sm btn-outline-primary">Tümünü Gör →</a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            @forelse($recent_users as $recent_user)
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span>{{ $recent_user->name }}</span>
-                                    <small class="text-muted">{{ $recent_user->created_at->diffForHumans() }}</small>
-                                </li>
-                            @empty
-                                <li class="list-group-item">Henüz yeni bir kullanıcı kaydı yok.</li>
-                            @endforelse
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Son Eklenen Siteler Paneli --}}
-            <div class="col-lg-6 mb-4">
-                <div class="card shadow">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h6 class="m-0 font-weight-bold text-success">Son Eklenen Siteler</h6>
-                        <a href="{{ route('sites.index') }}" class="btn btn-sm btn-outline-success">Tümünü Gör →</a>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            @forelse($recent_sites as $site)
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span>{{ $site->name }}</span>
-                                    <small class="text-muted">{{ $site->created_at->diffForHumans() }}</small>
-                                </li>
-                            @empty
-                                <li class="list-group-item">Henüz yeni bir site eklenmemiş.</li>
-                            @endforelse
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        {{-- Buraya "Son Destek Talepleri", "Son Ödemeler" ve "Son Mesajlar" gibi paneller de eklenebilir --}}
-
     </div>
-@endsection
+
+    {{-- ESKİ YAPI (Bu satırı silin):
+    @endsection
+    --}}
+
+    {{-- YENİ YAPI (Bu satırı ekleyin): --}}
+</x-admin-layout>

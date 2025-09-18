@@ -40,5 +40,11 @@ Route::middleware(['auth', 'role:super-admin|site-admin|accountant'])
             Route::get('/', [MonthlyDueController::class, 'index'])->name('index');
             // Diğer CRUD operasyonları için rotalar (create, store, edit, update, destroy) buraya eklenebilir.
         });
-
+        Route::middleware(['auth', 'verified'])->group(function () {
+            Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
+            // Önceki cevapta oluşturduğumuz gecikme faizi hesaplama rotası da burada olmalı.
+            Route::post('/finance/calculate-late-fees', [FinanceController::class, 'calculateLateFees'])
+                ->name('finance.calculate-late-fees')
+                ->middleware('can:manage finance');
+        });
     });

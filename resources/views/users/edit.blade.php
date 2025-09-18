@@ -1,7 +1,9 @@
-    @extends('layouts.app')
-
-    @section('content')
-        <div class="container">
+<x-admin-layout>
+    <x-slot name="header">
+        <h2 class="h4 font-weight-bold">
+            {{ __('Tüm Sakinler') }}
+        </h2>
+    </x-slot>
             <div class="card">
                 <div class="card-header">
                     Kullanıcı Düzenle: {{ $user->name }}
@@ -131,7 +133,7 @@
                     </form>
                 </div>
             </div>
-        </div>
+
         <script>
             // Rol checkbox'larına event listener ekle
             document.querySelectorAll('.role-checkbox').forEach(checkbox => {
@@ -150,4 +152,4 @@
             // Sayfa yüklendiğinde mevcut duruma göre div'leri göster/gizle
             document.addEventListener('DOMContentLoaded', toggleManagedDivs);
         </script>
-    @endsection
+</x-admin-layout>>

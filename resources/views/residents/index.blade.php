@@ -1,7 +1,9 @@
-@extends('layouts.app') @section('content')
-<div class="container">
-    <div class="row">
-        <div class="col-md-12">
+<x-admin-layout>
+    <x-slot name="header">
+        <h2 class="h4 font-weight-bold">
+            {{ __('Tüm Sakinler') }}
+        </h2>
+    </x-slot>
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span>Tüm Sakinler (Kullanıcılar)</span>
@@ -51,7 +53,4 @@
                     @endif
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-@endsection
+</x-admin-layout>>

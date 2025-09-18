@@ -37,6 +37,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage bank accounts', // Banka ve Kasa hesaplarını yönetme (Faz 4)
             'manage vendors',       // Tedarikçileri yönetme (Faz 4)
             'view finance',         // Finansal verileri sadece görüntüleme (Denetçi için)
+            'view own dashboard',
+            'manage site settings',
         ];
 
         foreach ($permissions as $permission) {
@@ -51,6 +53,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'resident',
             'staff',
             'property-owner',
+            'auditor',
+            'accountant',
         ];
 
         foreach ($roles as $role) {
@@ -70,25 +74,30 @@ class RolesAndPermissionsSeeder extends Seeder
             'view reports',
             'use reservations',
             'use maintenance',
-            'manage budgets', 'approve expenses', 'manage bank accounts', 'manage vendors', 'view finance'
+            'manage budgets', 'approve expenses', 'manage bank accounts', 'manage vendors', 'view finance',
+            'view own dashboard',
+            'manage site settings',
         ]);
 // Accountant (Muhasebeci)
         Role::firstOrCreate(['name' => 'accountant'])
         ->givePermissionTo([
             'manage finance', 'manage payments', 'view reports', 'view incomes', 'create expenses',
             // --- YENİ EKLENEN YETKİLER ---
-            'manage bank accounts', 'manage vendors', 'view finance'
+            'manage bank accounts', 'manage vendors', 'view finance',
+            'view own dashboard',
         ]);
 
         // Auditor (Denetçi) - YENİ ROL
         Role::firstOrCreate(['name' => 'auditor'])->givePermissionTo([
-            'view reports',
+            'view reports', 'view incomes',
+            'view own dashboard',
             'view finance',
         ]);
         Role::findByName('block-admin')->givePermissionTo([
             'manage apartments',
             'manage residents',
             'manage announcements',
+            'view own dashboard',
         ]);
 
         Role::findByName('resident')->givePermissionTo([
@@ -97,6 +106,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         Role::findByName('staff')->givePermissionTo([
             'use maintenance',
+            'view own dashboard',
         ]);
 
         Role::findByName('property-owner')->givePermissionTo([
@@ -104,6 +114,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage residents',
             'approve expenses',
             'view reports',
+            'view own dashboard',
         ]);
     }
 }

@@ -1,7 +1,9 @@
-@extends('layouts.app')
-
-@section('content')
-    <div class="container">
+<x-admin-layout>
+    <x-slot name="header">
+        <h2 class="h4 font-weight-bold">
+            {{ __('Tüm Sakinler') }}
+        </h2>
+    </x-slot>
         <h1>Kullanıcı Rol Yönetimi</h1>
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
@@ -36,5 +38,4 @@
             @endforeach
             </tbody>
         </table>
-    </div>
-@endsection
+</x-admin-layout>>
