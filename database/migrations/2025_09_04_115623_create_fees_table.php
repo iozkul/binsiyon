@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::dropIfExists('fees');
         Schema::create('fees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('site_id')->constrained(); // Hangi siteye ait olduğu
