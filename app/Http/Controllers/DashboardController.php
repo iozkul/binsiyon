@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Site;
 use App\Models\Fee;
@@ -21,8 +22,28 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $data = [];
+        $activeSiteId = session('active_site_id');
+/*
+        if ($activeSiteId === 'all') {
+            $user = auth()->user();
+            $siteIds = $user->hasRole('super-admin')
+                ? Site::pluck('id')
+                : $user->sites()->pluck('id');
 
+            $stats = [
+                'total_sites' => $siteIds->count(),
+                'total_units' => DB::table('units')->whereIn('site_id', $siteIds)->count(),
+                'total_income' => DB::table('incomes')->whereIn('site_id', $siteIds)->sum('amount'),
+                'total_expense' => DB::table('expenses')->whereIn('site_id', $siteIds)->sum('amount'),
+            ];
+            //return view('dashboard-aggregate', compact('stats'));
+        }*/
         if ($user->hasRole('super-admin')) {
+            $siteIds = $user->hasRole('super-admin')
+                ? Site::pluck('id')
+                : $user->sites()->pluck('id');
+
+
             $view = 'admin.super_admin_dashboard';
             $data = $this->getSuperAdminData();
         } elseif ($user->hasRole('site-admin')) {
@@ -50,10 +71,24 @@ class DashboardController extends Controller
             // Varsayılan dashboard
             $view = 'dashboard';
         }
-
-        return view($view, $data);
+        $stats = [
+            'total_sites' => $siteIds->count(),
+            'total_units' => DB::table('units')->whereIn('site_id', $siteIds)->count(),
+            'total_income' => DB::table('incomes')->whereIn('site_id', $siteIds)->sum('amount'),
+            'total_expense' => DB::table('expenses')->whereIn('site_id', $siteIds)->sum('amount'),
+        ];
+        return view($view, $data, compact('stats'));
     }
+    public function setActiveSite($siteId, Request $request)
+    {
+        $user = auth()->user();
+        if ($siteId !== 'all' && !$user->hasRole('super-admin') && !$user->sites->contains($siteId)) {
+            abort(403, 'Bu siteyi yönetme yetkiniz yok.');
+        }
 
+        session(['active_site_id' => $siteId]);
+        return redirect()->route('dashboard');
+    }
     // --- Her Rol İçin Veri Çekme Metotları ---
 
     private function getSuperAdminData()

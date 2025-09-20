@@ -40,6 +40,18 @@
                             <h3 class="text-lg font-semibold">Okunmamış Duyuru</h3>
                             <p class="text-2xl">{{ $unreadAnnouncementsCount ?? 'N/A' }}</p>
                         </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h4 class="text-gray-500">Toplam Bağımsız Bölüm</h4>
+                            <p class="text-3xl font-bold">{{ $stats['total_units'] }}</p>
+                        </div>
+                        <div class="bg-green-100 p-6 rounded-lg shadow">
+                            <h4 class="text-green-700">Toplam Gelir</h4>
+                            <p class="text-3xl font-bold text-green-800">{{ number_format($stats['total_income'], 2, ',', '.') }} ₺</p>
+                        </div>
+                        <div class="bg-red-100 p-6 rounded-lg shadow">
+                            <h4 class="text-red-700">Toplam Gider</h4>
+                            <p class="text-3xl font-bold text-red-800">{{ number_format($stats['total_expense'], 2, ',', '.') }} ₺</p>
+                        </div>
                     </div>
 
                     {{-- ... Diğer dashboard bileşenleriniz buraya gelebilir ... --}}

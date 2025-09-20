@@ -33,6 +33,30 @@ class SiteSettingController extends Controller
         return view('site-settings.index', compact('settings'));
     }
 
+    public function store(Request $request)
+    {
+        Gate::authorize('manage site settings');
+        $activeSiteId = session('active_site_id');
+        if (!$activeSiteId) {
+            return back()->with('error', 'Aktif site bulunamadı.');
+        }
+
+        $validated = $request->validate([
+            'site_name' => 'nullable|string|max:255',
+            'maintenance_mode' => 'nullable|boolean',
+            'fee_calculation_method' => 'required|in:fixed,per_sqm,land_share',
+            'late_fee_rate' => 'required|numeric|min:0|max:100',
+        ]);
+
+        foreach ($validated as $key => $value) {
+            SiteSetting::updateOrCreate(
+                ['site_id' => $activeSiteId, 'key' => $key],
+                ['value' => $value ?? '']
+            );
+        }
+        return back()->with('success', 'Site ayarları başarıyla güncellendi.');
+    }
+
     public function update(Request $request)
     {
         $siteId = Auth::user()->site_id;

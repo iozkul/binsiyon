@@ -7,41 +7,7 @@
             <form action="{{ route('context.switchSite') }}" method="POST" class="d-flex align-items-center me-3">
                 @csrf
                 <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-                @if(isset($managedSites) && $managedSites->count() > 0)
-                    <div class="ml-3 relative">
-                        <x-dropdown align="right" width="48">
-                            <x-slot name="trigger">
-                                <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                                    <div>
-                                        @if(session('active_site_id') && session('active_site_id') != 'all')
-                                            {{ $managedSites->find(session('active_site_id'))->name ?? 'Site Seç' }}
-                                        @elseif(session('active_site_id') == 'all')
-                                            Tüm Siteler Özet
-                                        @else
-                                            Site Seç
-                                        @endif
-                                    </div>
-                                    <div class="ml-1"><svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></div>
-                                </button>
-                            </x-slot>
-                            <x-slot name="content">
-                                @if(Auth::user()->hasRole('super-admin') || $managedSites->count() > 1)
-                                    <x-dropdown-link :href="route('dashboard.set-active-site', ['site' => 'all'])">
-                                        {{ __('Tüm Siteler Özet') }}
-                                    </x-dropdown-link>
-                                @endif
 
-                                @foreach($managedSites as $site)
-                                    <x-dropdown-link :href="route('dashboard.set-active-site', ['site' => $site->id])">
-                                        {{ $site->name }}
-                                    </x-dropdown-link>
-                                @endforeach
-                            </x-slot>
-                        </x-dropdown>
-                    </div>
-
-
-                {{--
                 @if(Auth::user()->hasRole('site-admin') && $managedSites->count() > 0)
                     <label for="active_site_selector" class="form-label me-2 mb-0 fw-bold"><i class="fas fa-sync-alt"></i> Site Değiştir:</label>
                     <select name="site_id" id="active_site_selector" class="form-select form-select-sm" onchange="this.form.submit()">
@@ -54,7 +20,6 @@
                 @elseif(Auth::user()->hasRole('block-admin') && $managedBlocks->count() > 0)
                     {{-- Blok seçimi için benzer bir yapı buraya eklenebilir --}}
                 @endif
-
             </form>
             @endrole
         </div>

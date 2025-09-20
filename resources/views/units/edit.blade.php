@@ -1,7 +1,9 @@
-@extends('layouts.app')
-
-@section('content')
-    <div class="container">
+<x-admin-layout>
+    <x-slot name="header">
+        <h2 class="h4 font-weight-bold">
+            {{ __('Site Yönetimi- Birim Düzenle') }}
+        </h2>
+    </x-slot>
         <div class="card">
             <div class="card-header">
                 Birim Düzenle: {{ $unit->name_or_number }}
@@ -121,5 +123,4 @@
                 </form>
             </div>
         </div>
-    </div>
-@endsection
+</x-admin-layout>>

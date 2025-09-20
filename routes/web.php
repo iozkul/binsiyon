@@ -209,6 +209,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/income-expense', [ReportController::class,'incomeExpense'])->name('income-expense');
         Route::get('/debtors', [ReportController::class,'debtors'])->name('debtors');
     });
+    Route::get('dashboard/set-site/{site}', [DashboardController::class, 'setActiveSite'])->name('dashboard.set-active-site')->middleware('auth');
 
     // Diğer tekil rotalar...
     Route::resource('fixtures', FixtureController::class); // Bu rotanın iznini belirleyin

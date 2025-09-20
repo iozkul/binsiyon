@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Site;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Telescope\Telescope;
 
@@ -49,6 +50,20 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('unreadAnnouncementsCount', $unreadAnnouncementsCount);
                 $view->with('unreadMessagesCount', $unreadMessagesCount);
             }
+
+            View::composer(['layouts.navigation', 'layouts.app'], function ($view) {
+                $managedSites = collect();
+                if (Auth::check()) {
+                    $user = Auth::user();
+                    if ($user->hasRole('super-admin')) {
+                        //$managedSites = Sites::all();
+                        $managedSites= Site::all();
+                    } else {
+                        $managedSites = $user->sites;
+                    }
+                }
+                $view->with('managedSites', $managedSites);
+            });
         });
     }
 }

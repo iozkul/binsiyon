@@ -52,6 +52,37 @@
 
                     <button type="submit" class="btn btn-primary">Duyuruyu Yayınla</button>
                 </form>
+                {{-- Formun altına veya üstüne script ekle --}}
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const form = document.getElementById('announcementForm');
+                        const activeSiteId = {{ session('active_site_id') ?? 'null' }};
+                        if (!form || !activeSiteId) return;
+
+                        const draftKey = `draft_announcement_site_${activeSiteId}`;
+
+                        const savedDraft = localStorage.getItem(draftKey);
+                        if (savedDraft) {
+                            if (confirm('Bu site için kaydedilmemiş bir duyuru taslağınız var. Yüklemek ister misiniz?')) {
+                                const draftData = JSON.parse(savedDraft);
+                                form.querySelector('[name="title"]').value = draftData.title || '';
+                                form.querySelector('[name="body"]').value = draftData.body || '';
+                            }
+                        }
+
+                        form.addEventListener('input', () => {
+                            const formData = {
+                                title: form.querySelector('[name="title"]').value,
+                                body: form.querySelector('[name="body"]').value,
+                            };
+                            localStorage.setItem(draftKey, JSON.stringify(formData));
+                        });
+
+                        form.addEventListener('submit', () => {
+                            localStorage.removeItem(draftKey);
+                        });
+                    });
+                </script>
             </div>
         </div>
     </div>
