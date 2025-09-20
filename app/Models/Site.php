@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Scopes\ManagedScope;
 use App\Models\Debt;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 
 class Site extends Model
@@ -44,5 +46,9 @@ class Site extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'site_user');
+    }
+    public function settings(): HasMany
+    {
+        return $this->hasMany(SiteSetting::class);
     }
 }

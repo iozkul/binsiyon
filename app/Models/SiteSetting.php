@@ -10,4 +10,9 @@ class SiteSetting extends Model
     use HasFactory;
 
     protected $fillable = ['site_id', 'key', 'value'];
+
+    public function site()
+    {
+        return $this->belongsTo(Site::class);
+    }
 }

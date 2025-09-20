@@ -68,7 +68,7 @@ class User extends Authenticatable
 
         ];
     }
-    public function sites()
+    public function sites(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         // Birden çok site yönetimi için pivot tablo ilişkisi
         return $this->belongsToMany(Site::class, 'site_user');

@@ -117,18 +117,21 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:super-admin|site-admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::resource('sites', SiteController::class);
         Route::resource('blocks', BlockController::class);
-        Route::resource('site-settings', SiteSettingController::class);
+        //Route::resource('site-settings', SiteSettingController::class);
         Route::get('/sites', [SiteController::class, 'index'])->name('sites.index')
             ->middleware(['can:manage sites']); // <-- Sadece 'site-list' izni olanlar girebilir
 
-//site yönetim ayarları
-        Route::get('/site-settings', [SiteSettingController::class, 'index'])->name('site-settings.index')
-            ->middleware(['can:manage sites']);
-        //Route::post('/site-settings', [SiteSettingController::class, 'update'])->name('site-settings.update');
+
 
 
 
     });
+//site yönetim ayarları
+    Route::get('/site-settings', [SiteSettingController::class, 'index'])->name('site-settings.index')
+        ->middleware(['can:manage sites']);
+    Route::post('/site-settings', [SiteSettingController::class, 'update'])->name('site-settings.update');
+
+
     Route::resource('fixtures', FixtureController::class);
     Route::resource('reservations', ReservationController::class)->middleware('permission:manage sites');
     Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {

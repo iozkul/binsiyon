@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 
 class SiteSettingController extends Controller
 {
@@ -13,6 +14,9 @@ class SiteSettingController extends Controller
 
     public function index()
     {
+        // Yetki kontrolü
+        Gate::authorize('manage site settings');
+
         Log::info('SiteSettingController@index metodu çalıştı. Kullanıcı: ' . Auth::id());
 
         $user=Auth::user();
