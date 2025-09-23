@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Site;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class ActiveSiteController extends Controller
 {
@@ -20,29 +19,30 @@ class ActiveSiteController extends Controller
         $siteId = $validated['site_id'];
         $user = auth()->user();
 
-        // Eğer 'all' seçeneği geldiyse ve kullanıcı super-admin değilse, işlemi reddet.
+        // Güvenlik: 'all' seçeneği geldiyse ve kullanıcı super-admin değilse, işlemi reddet.
         if ($siteId === 'all' && !$user->hasRole('super-admin')) {
             abort(403, 'Bu işlem için yetkiniz yok.');
         }
 
-        // Eğer belirli bir site ID'si geldiyse, kullanıcının o siteye erişim yetkisi var mı kontrol et.
+        // Güvenlik: Belirli bir site ID'si geldiyse, kullanıcının o siteye erişim yetkisi var mı kontrol et.
         if ($siteId !== 'all') {
             $site = Site::findOrFail($siteId);
-            // Burada kullanıcının o siteye atanıp atanmadığını kontrol eden bir policy veya gate olabilir.
-            // Örnek: if (!Gate::allows('view-site', $site)) { abort(403); }
+            // Super-admin olmayan kullanıcılar için, sadece kendi yönettiği siteler arasından seçim yapabilmeli.
+            if (!$user->hasRole('super-admin') && !$user->sites->contains($siteId)) {
+                abort(403, 'Bu siteyi yönetme yetkiniz bulunmamaktadır.');
+            }
         }
 
         // Seçimi session'a kaydet.
         session(['active_site_id' => $siteId]);
 
-        $message = 'Aktif çalışma ortamı değiştirildi.';
-        if($siteId !== 'all') {
-            $message = 'Aktif site olarak "' . Site::find($siteId)->name . '" seçildi.';
-        } else {
-            $message = 'Tüm siteler için özet görünümüne geçildi.';
+        // Bilgilendirme mesajını oluştur ve geri yönlendir.
+        $message = 'Tüm siteler için özet görünümüne geçildi.';
+        if ($siteId !== 'all') {
+            $siteName = Site::find($siteId)->name;
+            $message = 'Aktif site olarak "' . $siteName . '" seçildi.';
         }
 
-        // Kullanıcıyı geldiği sayfaya bir başarı mesajıyla geri yönlendir.
-        return back()->with('success', $message);
+        return redirect()->back()->with('success', $message);
     }
 }

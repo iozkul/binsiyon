@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
+            'site.selected' => \App\Http\Middleware\EnsureActiveSiteIsSelected::class,
+
         ]);
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\CheckUserStatus::class,

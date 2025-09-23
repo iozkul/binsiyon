@@ -16,6 +16,13 @@ class EnsureActiveSiteIsSelected
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Eğer session'da 'active_site_id' yoksa veya boşsa
+        if (!session()->has('active_site_id') || is_null(session('active_site_id'))) {
+            // Kullanıcıyı bir site seçmesi için uyararak dashboard'a yönlendir.
+            return redirect()->route('dashboard')
+                ->with('error', 'Bu sayfaya erişmek için lütfen önce bir site seçin.');
+        }
+        /*
         $user = Auth::user();
         if (!session()->has('active_site_id') || is_null(session('active_site_id'))) {
 
@@ -30,7 +37,7 @@ class EnsureActiveSiteIsSelected
             }
         }
 
-        }
+        }*/
         return $next($request);
     }
 }

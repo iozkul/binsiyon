@@ -1,15 +1,15 @@
 
 @php
     // Giriş yapmış kullanıcının erişebileceği siteleri al
-    $userSites = auth()->user()->sites; // Veya yönettiği tüm siteleri getiren bir metod
-    $activeSiteId = session('active_site_id');
+    $user = auth()->user();
+    $sites = $user->hasRole('super-admin') ? \App\Models\Site::all() : $user->sites;
 @endphp
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
     <div class="container-fluid">
         <div class="d-flex align-items-center">
             @role('site-admin|block-admin')
 {{--            <form action="{{ route('context.switchSite') }}" method="POST" class="d-flex align-items-center me-3">--}}
-            <form action="{{ route('sites.switch') }}" method="POST" id="site-switcher-form">
+            <form action="{{ route('sites.switch') }}" method="POST" id="siteSwitchForm" class="me-3">
                 @csrf
                 <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
                 @if(isset($managedSites) && $managedSites->count() > 0)

@@ -17,12 +17,14 @@ class BudgetController extends Controller
 
     public function __construct()
     {
-        //dd(session()->all());
+
         $this->authorizeResource(Budget::class, 'budget');
     }
 
     public function index()
     {
+        //dd(session()->all());
+        /*
         $activeSiteId = session('active_site_id');
         $user = auth()->user();
 
@@ -43,6 +45,22 @@ class BudgetController extends Controller
         }
 
         $budgets = $query->latest()->paginate(15);
+
+        return view('finance::budgets.index', compact('budgets'));
+        */
+        $activeSiteId = session('active_site_id');
+        // Middleware zaten kontrol ediyor ama burada tekrar kontrol etmek iyidir.
+
+        $user = auth()->user();
+
+        // Eğer "Tüm Siteler" seçiliyse ve kullanıcı super-admin ise
+        if ($activeSiteId === 'all' && $user->hasRole('super-admin')) {
+            // Tüm sitelere ait bütçeleri getir.
+            $budgets = Budget::latest()->paginate(15);
+        } else {
+            // Sadece aktif siteye ait bütçeleri getir.
+            $budgets = Budget::where('site_id', $activeSiteId)->latest()->paginate(15);
+        }
 
         return view('finance::budgets.index', compact('budgets'));
     }

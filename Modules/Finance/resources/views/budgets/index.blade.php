@@ -1,6 +1,6 @@
-<x-app-layout>
+<x-admin-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="h4 font-weight-bold">
             {{ __('Bütçe Yönetimi') }}
         </h2>
     </x-slot>
@@ -83,4 +83,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

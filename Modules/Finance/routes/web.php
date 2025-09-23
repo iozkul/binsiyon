@@ -11,8 +11,14 @@ use Modules\Finance\App\Http\Controllers\BudgetController;
 use Modules\Finance\App\Http\Controllers\IncomeController;
 use Modules\Finance\App\Http\Controllers\VendorController;
 
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/sites-switch', [FinanceController::class, 'switch'])
+        ->name('sites.switch');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+});
+
+
+Route::middleware(['auth', 'verified', 'site.selected'])->group(function () {
 
     Route::prefix('finance')
         ->name('finance.')
@@ -20,8 +26,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             // Planlama (Bütçeler)
             // Yetki: manage budgets
-            Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
-            //Route::resource('budgets', BudgetController::class); // middleware kapalı
+            //Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
+            Route::resource('budgets', BudgetController::class); // middleware kapalı
 
 
             // Gelir Yönetimi

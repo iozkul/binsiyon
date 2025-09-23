@@ -36,7 +36,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Modules\Finance\Http\Controllers\MonthlyDueController;
 //use App\Http\Controllers\BudgetController;
 //use Modules\Finance\Http\Controllers\BudgetController;
-use App\Http\Controllers\ActiveContextController;
+
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\SiteSwitchController;
@@ -88,8 +88,15 @@ Route::get('/confirm-account/{token}', [ConfirmationController::class, 'confirm'
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/switch-site/{site}', [SiteSwitchController::class, 'switchSite'])->name('sites.switch');
-    Route::post('/sites/switch', [ActiveSiteController::class, 'switch'])->name('sites.switch');
+    //Route::get('/switch-site/{site}', [SiteSwitchController::class, 'switchSite'])->name('sites.switch');
+    Route::post('/switch-site', [ActiveSiteController::class, 'switch'])
+        ->middleware('auth')
+        ->name('sites.switch');
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->middleware(['auth', 'verified'])->name('dashboard');
+
+    //Route::post('/switch-site', [ActiveSiteController::class, 'switch'])->name('sites.switch')->middleware('auth');
 
     // SADECE SÜPER-ADMİN'İN ERİŞEBİLECEĞİ ALANLAR
     Route::middleware(['role:super-admin'])->prefix('admin')->name('admin.')->group(function ()
