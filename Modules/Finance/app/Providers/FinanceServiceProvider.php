@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Finance\Providers;
+namespace Modules\Finance\App\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +27,7 @@ class FinanceServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        $this->loadRoutesFrom(__DIR__.'/../Routes/web.php');
     }
 
     /**
@@ -34,8 +35,11 @@ class FinanceServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
+        $this->app->register(AuthServiceProvider::class);
+
     }
 
     /**

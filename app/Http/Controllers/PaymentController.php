@@ -88,6 +88,25 @@ class PaymentController extends Controller
      */
     public function destroy(Payment $payment)
     {
-        //
+        DB::transaction(function () use ($payment) {
+            // Orijinal kaydı "iptal edildi" olarak işaretle
+            $payment->is_reversed = true;
+            $payment->status = 'reversed';
+            $payment->save();
+
+            // Ters kaydı oluştur
+            $reversalPayment = $payment->replicate(); // Orijinalin kopyasını al
+            $reversalPayment->amount = -$payment->amount; // Tutarı negatife çevir
+            $reversalPayment->status = 'reversal_entry';
+            $reversalPayment->reverses_payment_id = $payment->id; // Hangi kaydı iptal ettiğini belirt
+            $reversalPayment->save();
+
+            // İlgili borcun durumunu tekrar "ödenmedi" olarak güncelle
+            if ($payment->debt) {
+                $payment->debt->update(['status' => 'unpaid']);
+            }
+        });
+
+        return back()->with('success', 'Ödeme kaydı iptal edildi (ters kayıt oluşturuldu).');
     }
 }

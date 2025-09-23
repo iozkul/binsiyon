@@ -56,6 +56,24 @@ class Unit extends Model
     {
         return $this->belongsTo(User::class, 'resident_id');
     }
+    public function histories() {
+        return $this->hasMany(UnitHistory::class)->orderBy('start_date', 'desc');
+    }
 
+    public function currentOwner() {
+        return $this->hasOne(UnitHistory::class)
+            ->where('role', 'owner')
+            ->whereNull('end_date');
+    }
+
+    public function currentTenant() {
+        return $this->hasOne(UnitHistory::class)
+            ->where('role', 'tenant')
+            ->whereNull('end_date');
+    }
+
+    public function debts() {
+        return $this->hasMany(Debt::class);
+    }
 
 }

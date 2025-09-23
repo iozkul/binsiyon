@@ -28,23 +28,69 @@
             </li>
         @endcanany
         @can('manage site settings')<li class="nav-item"><a class="nav-link text-white" href="{{ route('site-settings.index') }}">Site Ayarları</a></li>@endcan
-        @canany(['manage finance', 'manage budgets', 'view reports', 'view incomes', 'create expenses'])
+        @canany(['manage finance', 'manage personnel', 'manage legal cases'])
             <li class="nav-item">
                 <a class="nav-link text-white collapsed" data-bs-toggle="collapse" href="#financeSubmenu" role="button" aria-expanded="false" aria-controls="financeSubmenu">
-                    <i class="fas fa-lira-sign me-2"></i> Finans <i class="fas fa-chevron-down float-end"></i>
+                    <i class="fas fa-file-invoice-dollar me-2"></i> Finans <i class="fas fa-chevron-down float-end"></i>
                 </a>
-                <div class="collapse {{ request()->routeIs(['finance.*', 'budgets.*', 'reports.*', 'incomes.*', 'expenses.*', 'fees.*']) ? 'show' : '' }}" id="financeSubmenu">
+                <div class="collapse {{ request()->is('finance*') || request()->is('personnel*') || request()->is('legal*') ? 'show' : '' }}" id="financeSubmenu">
                     <ul class="nav flex-column ps-3">
-                        @can('manage finance')<li class="nav-item"><a class="nav-link text-white-50" href="{{ route('finance.index') }}">Finans Paneli</a></li>@endcan
-                        @can('manage budgets')<li class="nav-item"><a class="nav-link text-white-50" href="{{ route('budgets.index') }}">Bütçeler</a></li>@endcan
-                        @can('view reports')<li class="nav-item"><a class="nav-link text-white-50" href="#">Raporlar</a></li>@endcan
-                        @can('view incomes')<li class="nav-item"><a class="nav-link text-white-50" href="{{ route('incomes.index') }}">Gelirler</a></li>@endcan
-                        @can('create expenses')<li class="nav-item"><a class="nav-link text-white-50" href="{{ route('expenses.index') }}">Giderler</a></li>@endcan
-                        <li class="nav-item"><a class="nav-link text-white-50" href="{{ route('finance.monthly-dues.index') }}">Aidatlar</a></li>
-                        <li class="nav-item"><a class="nav-link text-white-50" href="{{ route('fees.index') }}">Aidat Yönetimi</a></li>
-                        <li class="nav-item"><a class="nav-link text-white-50" href="{{ route('fee-templates.index') }}">Aidat Şablonları</a></li>
-                        <li class="nav-item"><a class="nav-link text-white-50" href="{{ route('debts.index') }}">Borçlular Listesi</a></li>
-                     </ul>
+
+                        @can('manage budgets')
+                            <li class="nav-item">
+                                <a href="{{ route('finance.budgets.index') }}" class="nav-link text-white {{ request()->is('finance/budgets*') ? 'active' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Planlama (Bütçeler)</p>
+                                </a>
+                            </li>
+                        @endcan
+
+                        @canany(['view incomes', 'create expenses'])
+                            <li class="nav-item">
+                                <a class="nav-link text-white collapsed" data-bs-toggle="collapse" href="#operationSubmenu" role="button" aria-expanded="false" aria-controls="operationSubmenu">
+                                    <i class="fas fa-cogs me-2"></i> Operasyon <i class="fas fa-chevron-down float-end"></i>
+                                </a>
+                                <div class="collapse {{ request()->is('finance/incomes*') || request()->is('finance/expenses*') ? 'show' : '' }}" id="operationSubmenu">
+                                    <ul class="nav flex-column ps-3">
+                                        @can('view incomes')
+                                            <li class="nav-item"><a class="nav-link text-white {{ request()->is('finance/incomes*') ? 'active' : '' }}" href="{{ route('finance.incomes.index') }}">Gelirler</a></li>
+                                        @endcan
+                                        @can('create expenses')
+                                            <li class="nav-item"><a class="nav-link text-white {{ request()->is('finance/expenses*') ? 'active' : '' }}" href="{{ route('finance.expenses.index') }}">Giderler</a></li>
+                                        @endcan
+                                    </ul>
+                                </div>
+                            </li>
+                        @endcanany
+
+                        @can('view reports')
+                            <li class="nav-item">
+                                <a href="{{ route('reports.financial.summary') }}" class="nav-link text-white {{ request()->is('reports*') ? 'active' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Takip & Raporlama</p>
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('manage vendors')
+                            <li class="nav-item">
+                                <a href="{{ route('finance.vendors.index') }}" class="nav-link text-white {{ request()->is('finance/vendors*') ? 'active' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Varlıklar (Tedarikçi)</p>
+                                </a>
+                            </li>
+                        @endcan
+
+                        @can('manage personnel')
+                            <li class="nav-item">
+                                <a href="{{ route('personnel.employees.index') }}" class="nav-link text-white {{ request()->is('personnel*') ? 'active' : '' }}">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Personel & Bordro</p>
+                                </a>
+                            </li>
+                        @endcan
+
+                    </ul>
                 </div>
             </li>
         @endcanany

@@ -1,43 +1,59 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Gider Yönetimi</h2>
-    </x-slot>
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <div class="flex justify-end mb-4">
-                        <a href="{{ route('finance.expenses.create') }}" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Yeni Gider Ekle</a>
+<tbody class="bg-white divide-y divide-gray-200">
+@foreach ($expenses as $expense)
+    <tr>
+        <td class="px-6 py-4 whitespace-nowrap">
+            @if ($expense->file_path)
+                <a href="{{ asset('storage/' . $expense->file_path) }}" target="_blank" class="text-blue-500 hover:underline">
+                    Faturayı Gör
+                </a>
+            @endif
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                @if($expense->status == 'approved') bg-green-100 text-green-800 @elseif($expense->status == 'pending') bg-yellow-100 text-yellow-800 @elseif($expense->status == 'rejected') bg-red-100 text-red-800 @else bg-gray-100 text-gray-800 @endif">
+                {{ $expense->status }}
+            </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            @if($expense->status == 'pending')
+                @can('approve expenses')
+                    <div class="flex items-center space-x-2">
+                        <form action="{{ route('expenses.updateStatus', $expense) }}" method="POST" class="inline">
+                            @csrf
+                            <input type="hidden" name="status" value="approved">
+                            <button type="submit" class="text-green-600 hover:text-green-900">Onayla</button>
+                        </form>
+                        <form action="{{ route('expenses.updateStatus', $expense) }}" method="POST" class="inline">
+                            @csrf
+                            <input type="hidden" name="status" value="rejected">
+                            <button type="submit" class="text-red-600 hover:text-red-900">Reddet</button>
+                        </form>
                     </div>
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Açıklama</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Site</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tutar</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
-                        </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($expenses as $expense)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $expense->description }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $expense->site->name ?? 'Genel' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ $expense->category }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ number_format($expense->amount, 2) }} TL</td>
-                                <td class="px-6 py-4 whitespace-nowrap">{{ \Carbon\Carbon::parse($expense->expense_date)->format('d/m/Y') }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">Kayıtlı gider bulunamadı.</td>
-                            </tr>
-                        @endforelse
-                        </tbody>
-                    </table>
-                    <div class="mt-4">{{ $expenses->links() }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</x-app-layout>
+                @endcan
+            @endif
+            <a href="{{ route('expenses.edit', $expense->id) }}" class="text-indigo-600 hover:text-indigo-900 ml-4">Düzenle</a>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @if($expense->status == 'cancelled')
+                <span class="badge bg-secondary">İptal Edilmiş</span>
+            @elseif($expense->reversal_of_expense_id)
+                <span class="badge bg-warning">Düzeltme Kaydı</span>
+            @else
+                <span class="badge bg-success">Aktif</span>
+            @endif
+        </td>
+        <td>{{ $expense->description }}</td>
+        <td style="{{ $expense->amount < 0 ? 'color:red;' : '' }}">{{ number_format($expense->amount, 2) }} TL</td>
+        <td>
+            @if($expense->status == 'active' && !$expense->reversal_of_expense_id)
+                <form action="{{ route('expenses.cancel', $expense) }}" method="POST" onsubmit="return confirm('Bu gideri iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve bir ters kayıt oluşturulur.')">
+                    @csrf
+                    <button type="submit" class="btn btn-xs btn-danger">İptal Et</button>
+                </form>
+            @endif
+        </td>
+    </tr>
+@endforeach
+</tbody>

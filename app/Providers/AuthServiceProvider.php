@@ -20,7 +20,8 @@ use App\Policies\ApartmentPolicy;
 use App\Policies\FeeTemplatePolicy;
 use App\Policies\AnnouncementPolicy;
 use App\Policies\FixturePolicy;
-use App\Policies\BudgetPolicy;
+use Modules\Finance\app\Models\Budget;
+use Modules\Finance\app\Policies\BudgetPolicy;
 
 
 class AuthServiceProvider extends ServiceProvider
@@ -44,6 +45,7 @@ class AuthServiceProvider extends ServiceProvider
         Fixture::class => FixturePolicy::class,
         Budget::class => BudgetPolicy::class,
         Expense::class => ExpensePolicy::class,
+        \Modules\Finance\App\Models\Budget::class => \Modules\Finance\App\Policies\BudgetPolicy::class,
     ];
 
     /**

@@ -19,7 +19,7 @@ use App\Http\Controllers\OwnerDashboardController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\DebtController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ExpenseController;
+use Modules\Finance\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 //use App\Http\Controllers\OnlinePaymentController;
 use App\Http\Controllers\DocumentController;
@@ -33,10 +33,14 @@ use App\Http\Controllers\Admin\PackageController;
 //use App\Http\Controllers\Admin\FixtureController as AdminFixtureController;
 use App\Http\Controllers\FixtureController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use Modules\Finance\app\Http\Controllers\MonthlyDueController;
-use App\Http\Controllers\BudgetController;
+use Modules\Finance\Http\Controllers\MonthlyDueController;
+//use App\Http\Controllers\BudgetController;
+//use Modules\Finance\Http\Controllers\BudgetController;
 use App\Http\Controllers\ActiveContextController;
 use App\Http\Controllers\SiteSettingController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\SiteSwitchController;
+use App\Http\Controllers\ActiveSiteController;
 
 
 
@@ -84,6 +88,8 @@ Route::get('/confirm-account/{token}', [ConfirmationController::class, 'confirm'
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/switch-site/{site}', [SiteSwitchController::class, 'switchSite'])->name('sites.switch');
+    Route::post('/sites/switch', [ActiveSiteController::class, 'switch'])->name('sites.switch');
 
     // SADECE SÜPER-ADMİN'İN ERİŞEBİLECEĞİ ALANLAR
     Route::middleware(['role:super-admin'])->prefix('admin')->name('admin.')->group(function ()
@@ -134,20 +140,21 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('fixtures', FixtureController::class);
     Route::resource('reservations', ReservationController::class)->middleware('permission:manage sites');
+/*
     Route::prefix('finance')->name('finance.')->middleware(['auth'])->group(function () {
         Route::resource('monthly-dues', MonthlyDueController::class);
-    });
-    Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
+    });*/
+
     Route::get('/reports/income-expense', [ReportController::class, 'incomeExpense'])->name('reports.income-expense');
     Route::get('/reports/debtors', [ReportController::class, 'debtors'])->name('reports.debtors');
-    Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
+    //Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
 // Gecikme faizi hesaplama rotası
-    Route::post('/finance/calculate-late-fees', [FinanceController::class, 'calculateLateFees'])
+    /*Route::post('/finance/calculate-late-fees', [FinanceController::class, 'calculateLateFees'])
         ->name('finance.calculate-late-fees')
-        ->middleware('can:manage finance');
+        ->middleware('can:manage finance');*/
     Route::resource('expenses', ExpenseController::class);
     Route::post('/expenses/{expense}/status', [ExpenseController::class, 'updateStatus'])->name('expenses.updateStatus');
-    Route::resource('budgets', BudgetController::class)->middleware('can:manage budgets');
+
     Route::get('/select-site', [ActiveContextController::class, 'selectSite'])->name('context.selectSite');
     Route::post('/switch-site', [ActiveContextController::class, 'switchSite'])->name('context.switchSite');
 
@@ -185,15 +192,7 @@ Route::middleware('auth')->group(function () {
         //Route::resource('residents', ResidentController::class);
     });
 
-    // Finans Yönetimi
-    Route::middleware(['can:manage finance'])->group(function () {
-        Route::resource('fees', FeeController::class);
-        Route::resource('debts', DebtController::class);
-        Route::resource('payments', PaymentController::class);
-        Route::resource('fee-templates', FeeTemplateController::class);
-        Route::resource('expenses', ExpenseController::class);
-        Route::resource('incomes', IncomeController::class);
-    });
+
 
     Route::middleware(['can:manage residents'])->group(function () {
         Route::resource('residents', ResidentController::class);
@@ -208,12 +207,14 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['can:view reports'])->prefix('reports')->name('reports.')->group(function () {
         Route::get('/income-expense', [ReportController::class,'incomeExpense'])->name('income-expense');
         Route::get('/debtors', [ReportController::class,'debtors'])->name('debtors');
+        Route::get('/financial', [ReportController::class,'financial'])->name('financial');
     });
     Route::get('dashboard/set-site/{site}', [DashboardController::class, 'setActiveSite'])->name('dashboard.set-active-site')->middleware('auth');
 
     // Diğer tekil rotalar...
     Route::resource('fixtures', FixtureController::class); // Bu rotanın iznini belirleyin
     Route::resource('messages', MessageController::class); // Bu rotanın iznini belirleyin
+
 
 
 

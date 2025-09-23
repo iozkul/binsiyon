@@ -9,11 +9,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureActiveSiteIsSelected
 {
+    /**
+     * Gelen isteği işle.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();
+        if (!session()->has('active_site_id') || is_null(session('active_site_id'))) {
 
-        // Sadece super-admin olmayan ve site-admin rolüne sahip kullanıcılar için çalışır.
+            // Sadece super-admin olmayan ve site-admin rolüne sahip kullanıcılar için çalışır.
         if ($user && $user->hasRole('site-admin') && !$user->hasRole('super-admin')) {
             // Eğer yöneteceği site(ler) varsa ama aktif bir site seçmemişse
             if ($user->managedSites()->exists() && !session()->has('active_site_id')) {
@@ -22,6 +28,8 @@ class EnsureActiveSiteIsSelected
                     return redirect()->route('context.selectSite');
                 }
             }
+        }
+
         }
         return $next($request);
     }

@@ -39,6 +39,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'view finance',         // Finansal verileri sadece görüntüleme (Denetçi için)
             'view own dashboard',
             'manage site settings',
+            'manage budgets',       // Bütçe oluşturma ve yönetme
+            'manage expenses',      // Giderleri yönetme (mevcut create_expenses'ten daha kapsamlı)
+            'manage vendors',       // Tedarikçileri yönetme
+            'view financial reports', // Tüm finansal raporları görme
+            'manage payrolls',      // Personel ve bordroları yönetme
+            'manage legal cases',    // Hukuki süreçleri ve karar defterini yönetme
         ];
 
         foreach ($permissions as $permission) {
@@ -77,6 +83,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage budgets', 'approve expenses', 'manage bank accounts', 'manage vendors', 'view finance',
             'view own dashboard',
             'manage site settings',
+            'manage expenses', 'manage vendors', 'view financial reports',
+            'manage payrolls', 'manage legal cases',
         ]);
 // Accountant (Muhasebeci)
         Role::firstOrCreate(['name' => 'accountant'])
@@ -85,6 +93,8 @@ class RolesAndPermissionsSeeder extends Seeder
             // --- YENİ EKLENEN YETKİLER ---
             'manage bank accounts', 'manage vendors', 'view finance',
             'view own dashboard',
+            'manage budgets', 'manage expenses', 'manage vendors', 'view financial reports', 'manage payrolls',
+
         ]);
 
         // Auditor (Denetçi) - YENİ ROL

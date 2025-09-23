@@ -1,10 +1,15 @@
 
-
+@php
+    // Giriş yapmış kullanıcının erişebileceği siteleri al
+    $userSites = auth()->user()->sites; // Veya yönettiği tüm siteleri getiren bir metod
+    $activeSiteId = session('active_site_id');
+@endphp
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
     <div class="container-fluid">
         <div class="d-flex align-items-center">
             @role('site-admin|block-admin')
-            <form action="{{ route('context.switchSite') }}" method="POST" class="d-flex align-items-center me-3">
+{{--            <form action="{{ route('context.switchSite') }}" method="POST" class="d-flex align-items-center me-3">--}}
+            <form action="{{ route('sites.switch') }}" method="POST" id="site-switcher-form">
                 @csrf
                 <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
                 @if(isset($managedSites) && $managedSites->count() > 0)
@@ -61,8 +66,6 @@
 
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto d-flex align-items-center">
-                <div class="collapse navbar-collapse">
-                    <ul class="navbar-nav ms-auto d-flex align-items-center">
 
                         <li class="nav-item dropdown me-2">
                             <a href="#" class="nav-link position-relative" id="announcementsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -116,7 +119,7 @@
                             </ul>
                         </li>
 
-                <li class="nav-item dropdown">
+                        <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         {{ Auth::user()->name }}
                     </a>

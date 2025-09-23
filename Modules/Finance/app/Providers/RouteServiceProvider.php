@@ -1,50 +1,50 @@
 <?php
 
-namespace Modules\Finance\Providers;
+namespace Modules\Finance\App\Providers;
 
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
 class RouteServiceProvider extends ServiceProvider
 {
-    protected string $name = 'Finance';
+    /**
+     * Modülün controller'ları için varsayılan namespace.
+     */
+    protected string $moduleNamespace = 'Modules\Finance\App\Http\Controllers';
 
     /**
-     * Called before routes are registered.
-     *
-     * Register any model bindings or pattern based filters.
+     * Rota tanımlamalarını yapar.
      */
     public function boot(): void
     {
+
         parent::boot();
     }
-
-    /**
-     * Define the routes for the application.
-     */
     public function map(): void
     {
-        $this->mapApiRoutes();
         $this->mapWebRoutes();
+        $this->mapApiRoutes();
     }
 
     /**
-     * Define the "web" routes for the application.
-     *
-     * These routes all receive session state, CSRF protection, etc.
+     * Modül için "web" rotalarını tanımlar.
+     * Bu rotalar session, CSRF koruması gibi özelliklere sahip olur.
      */
     protected function mapWebRoutes(): void
     {
-        Route::middleware('web')->group(module_path($this->name, '/routes/web.php'));
+        Route::middleware('web') // <-- SORUNU ÇÖZEN ANAHTAR SATIR
+        ->namespace($this->moduleNamespace)
+            ->group(module_path('Finance', '/routes/web.php'));
     }
 
     /**
-     * Define the "api" routes for the application.
-     *
-     * These routes are typically stateless.
+     * Modül için "api" rotalarını tanımlar.
      */
     protected function mapApiRoutes(): void
     {
-        Route::middleware('api')->prefix('api')->name('api.')->group(module_path($this->name, '/routes/api.php'));
+        Route::prefix('api')
+            ->middleware('api')
+            ->namespace($this->moduleNamespace)
+            ->group(module_path('Finance', '/routes/api.php'));
     }
 }

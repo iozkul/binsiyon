@@ -4,5 +4,8 @@
     "Announcements": true,
     "Reservation": true,
     "Package": true,
-    "Maintenance": true
+    "Maintenance": true,
+    "Personnel": true,
+    "Reports": true,
+    "Legal": true
 }
