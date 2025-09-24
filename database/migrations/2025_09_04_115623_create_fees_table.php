@@ -10,7 +10,7 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
+    {/*
         Schema::create('fees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('site_id')->constrained(); // Hangi siteye ait olduğu
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->date('due_date'); // Son ödeme tarihi
             $table->timestamp('paid_at')->nullable(); // Ödendiği tarih (boş ise ödenmemiş)
             $table->timestamps();
-        });
+        });*/
     }
 
     /**
