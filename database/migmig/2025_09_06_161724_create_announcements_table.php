@@ -10,7 +10,7 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
+    {/*
         if (!Schema::hasTable('announcements')) {
         Schema::create('announcements', function (Blueprint $table) {
             $table->id();
@@ -21,6 +21,7 @@ return new class extends Migration
             $table->timestamp('published_at')->nullable(); // Yayınlanma tarihi
             $table->timestamps();
         });
+        */
     }
 
 
