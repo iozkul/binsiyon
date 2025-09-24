@@ -10,12 +10,13 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
+    {/*
         Schema::create('block_user_pivot', function (Blueprint $table) {
             $table->primary(['block_id', 'user_id']);
             $table->foreignId('block_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
         });
+        */
     }
 
     /**
